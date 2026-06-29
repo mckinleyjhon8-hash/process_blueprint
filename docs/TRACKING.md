@@ -72,9 +72,13 @@ _Last updated: 2026-06-29 (Phase 4 frontend foundation built & running)_
       embeddings); live pgvector retrieval ranks correctly; /api/analyze **persists**
       client→engagement→run→facts to Supabase; /api/brief generates a **real claude-opus-4-8**
       brief grounded in benchmark evidence (47s, health 93/A, client-safe guard: 0 leaks)
-- [ ] Real process-map render (Petri-net PNG/SVG from engine) into the map panel
-- [ ] Branded PDF/HTML export
-- [ ] Consultant approve gate before client-final
+- [x] **Branded report export** (`src/process_blueprint/report.py`): light, print-ready,
+      self-contained HTML deliverable (cover, health ring, KPIs, dependency-free process-flow
+      SVG, brief, bottlenecks, compliance) → `GET /api/report/{run_id}` (+ `download=1`).
+      Audience-aware (client view strips mechanics). Browser "Save as PDF" = the PDF.
+      Verified live: report HTTP 200, 27KB, real Claude brief embedded; 4 report tests.
+- [x] **Consultant approve gate**: client report export is disabled until "Approve for client".
+- [ ] Real Petri-net image (Graphviz `dot` not installed here; report uses the SVG flow instead — wire `save_vis_petri_net` once Graphviz is present)
 - [ ] Engagements list, upload flow, knowledge admin pages (shell ready)
 - [ ] Optional: match a specific Figma frame (needs Dev/Full seat + frame URL)
 

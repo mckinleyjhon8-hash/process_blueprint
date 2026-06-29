@@ -21,6 +21,7 @@ from typing import Any, Dict, Optional
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -38,6 +39,7 @@ except ImportError:
 from process_blueprint import analyze, ProcessFacts            # noqa: E402
 from process_blueprint.engine import analyze_dataframe         # noqa: E402
 from process_blueprint.brief import generate_brief             # noqa: E402
+from process_blueprint.report import build_report_html         # noqa: E402
 
 app = FastAPI(title="Process Blueprint API", version="0.4.0")
 
@@ -48,8 +50,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory run cache: run_id -> ProcessFacts (internal-only tool, single worker).
+# In-memory caches (internal-only tool, single worker).
 _RUNS: Dict[str, ProcessFacts] = {}
+_BRIEFS: Dict[tuple, Any] = {}        # (run_id, audience) -> BriefResult
+_COMPLIANCE: Dict[str, Any] = {}      # run_id -> SOP compliance report
 
 _PROVIDER_KEY = {
     "anthropic": "ANTHROPIC_API_KEY",
@@ -187,6 +191,7 @@ def analyze_sample(cases: int = 400, process: str = "Procure-to-Pay") -> Dict[st
     payload["persisted"] = _persist(facts) is not None
     if compliance is not None:
         payload["compliance"] = compliance
+        _COMPLIANCE[run_id] = compliance
     return payload
 
 
@@ -217,6 +222,7 @@ def brief(req: BriefRequest) -> Dict[str, Any]:
         model=req.model,
         kb=_knowledge_base(),  # grounds the brief in live benchmark evidence
     )
+    _BRIEFS[(req.run_id, result.audience)] = result  # reused by the report endpoint
     return {
         "audience": result.audience,
         "markdown": result.markdown,
@@ -225,3 +231,26 @@ def brief(req: BriefRequest) -> Dict[str, Any]:
         "model_name": result.model_name,
         "redaction_warnings": result.redaction_warnings,
     }
+
+
+@app.get("/api/report/{run_id}")
+def report(run_id: str, audience: str = "client", download: int = 0):
+    """Render the branded HTML deliverable for a run (client or internal)."""
+    facts = _RUNS.get(run_id)
+    if facts is None:
+        raise HTTPException(status_code=404, detail="Unknown run_id; analyze first.")
+
+    brief = _BRIEFS.get((run_id, audience))
+    brief_md = brief.markdown if brief is not None else None
+    compliance = _COMPLIANCE.get(run_id)
+
+    html = build_report_html(facts, brief_md, audience=audience, compliance=compliance)
+
+    if download:
+        fname = f"{facts.process_type.replace(' ', '_')}_{audience}_report.html"
+        return Response(
+            content=html,
+            media_type="text/html",
+            headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+        )
+    return HTMLResponse(content=html)

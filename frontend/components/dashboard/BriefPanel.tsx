@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ShieldCheck, Lock, Sparkles, Download, Loader2, AlertTriangle } from "lucide-react";
+import { ShieldCheck, Lock, Sparkles, Download, Loader2, AlertTriangle, ExternalLink, FileCheck } from "lucide-react";
 import type { ProcessFacts } from "@/lib/types";
-import { getBrief } from "@/lib/api";
+import { getBrief, reportUrl } from "@/lib/api";
 
 type Audience = "internal" | "client";
 
@@ -40,13 +40,17 @@ export function BriefPanel({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [modelName, setModelName] = useState<string | null>(null);
+  const [approved, setApproved] = useState(false);
 
   const live = briefs[audience];
+  // Client deliverable needs consultant sign-off; internal report is always exportable.
+  const canExport = !!runId && (audience === "internal" || approved);
 
   async function generate() {
     if (!runId) return;
     setLoading(true);
     setError(null);
+    setApproved(false);
     try {
       const res = await getBrief(runId, audience, provider);
       setBriefs((b) => ({ ...b, [audience]: res.markdown }));
@@ -74,7 +78,7 @@ export function BriefPanel({
           {(["internal", "client"] as const).map((a) => (
             <button
               key={a}
-              onClick={() => { setAudience(a); setError(null); }}
+              onClick={() => { setAudience(a); setError(null); setApproved(false); }}
               className={
                 "rounded-lg px-3 py-1.5 text-[12px] font-semibold capitalize transition-colors " +
                 (audience === a ? "bg-primary-strong text-white" : "text-fg-2 hover:text-fg")
@@ -136,7 +140,7 @@ export function BriefPanel({
         )}
       </div>
 
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         <button
           data-testid="generate-brief"
           onClick={generate}
@@ -146,9 +150,50 @@ export function BriefPanel({
           {loading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
           {runId ? "Generate" : "Generate (upload a log)"}
         </button>
-        <button className="flex items-center gap-1.5 rounded-xl border border-line bg-panel/60 px-3.5 py-2 text-[12.5px] font-semibold text-fg-2 hover:text-fg">
-          <Download size={14} /> Export PDF
-        </button>
+
+        {audience === "client" && runId && (
+          <button
+            onClick={() => setApproved((v) => !v)}
+            className={
+              "flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[12.5px] font-semibold transition-colors " +
+              (approved
+                ? "bg-success/15 text-success ring-1 ring-inset ring-success/30"
+                : "border border-line bg-panel/60 text-fg-2 hover:text-fg")
+            }
+          >
+            <FileCheck size={14} /> {approved ? "Approved for client" : "Approve for client"}
+          </button>
+        )}
+
+        <div className="ml-auto flex items-center gap-2">
+          <a
+            href={canExport ? reportUrl(runId!, audience) : undefined}
+            target="_blank"
+            rel="noreferrer"
+            aria-disabled={!canExport}
+            onClick={(e) => { if (!canExport) e.preventDefault(); }}
+            className={
+              "flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[12.5px] font-semibold transition-colors " +
+              (canExport
+                ? "bg-primary-strong text-white hover:bg-primary"
+                : "cursor-not-allowed border border-line bg-panel/40 text-muted")
+            }
+            title={canExport ? "Open the branded report (print to PDF)" : "Approve the client brief first"}
+          >
+            <ExternalLink size={14} /> Open report
+          </a>
+          <a
+            href={canExport ? reportUrl(runId!, audience, true) : undefined}
+            aria-disabled={!canExport}
+            onClick={(e) => { if (!canExport) e.preventDefault(); }}
+            className={
+              "flex items-center gap-1.5 rounded-xl border border-line bg-panel/60 px-3.5 py-2 text-[12.5px] font-semibold transition-colors " +
+              (canExport ? "text-fg-2 hover:text-fg" : "cursor-not-allowed text-muted")
+            }
+          >
+            <Download size={14} /> Download
+          </a>
+        </div>
       </div>
     </div>
   );

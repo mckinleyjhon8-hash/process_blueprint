@@ -46,6 +46,11 @@ export async function getBrief(
   return r.json();
 }
 
+export function reportUrl(runId: string, audience: "internal" | "client", download = false): string {
+  const q = `audience=${audience}${download ? "&download=1" : ""}`;
+  return `${BASE}/api/report/${runId}?${q}`;
+}
+
 export async function apiHealth(): Promise<boolean> {
   try {
     const r = await fetch(`${BASE}/api/health`, { cache: "no-store" });
