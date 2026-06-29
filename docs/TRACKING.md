@@ -68,6 +68,10 @@ _Last updated: 2026-06-29 (Phase 4 frontend foundation built & running)_
       cancellations, returns, invoice exceptions, escalations, business-hours timing, named resources
 - [x] **Production-scale proof**: live /api/analyze on 3,000 cases / 38,199 events in ~4s →
       17 activities, 42 variants, fitness 1.0 / precision 0.93. 45 Python tests pass.
+- [x] **FULLY LIVE with real keys**: knowledge ingested to Supabase (8 benchmarks, OpenAI
+      embeddings); live pgvector retrieval ranks correctly; /api/analyze **persists**
+      client→engagement→run→facts to Supabase; /api/brief generates a **real claude-opus-4-8**
+      brief grounded in benchmark evidence (47s, health 93/A, client-safe guard: 0 leaks)
 - [ ] Real process-map render (Petri-net PNG/SVG from engine) into the map panel
 - [ ] Branded PDF/HTML export
 - [ ] Consultant approve gate before client-final

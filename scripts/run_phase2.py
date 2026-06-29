@@ -26,6 +26,13 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(_ROOT, "src"))
 sys.path.insert(0, _ROOT)
 
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(os.path.join(_ROOT, ".env"))
+except ImportError:
+    pass
+
 from process_blueprint import analyze            # noqa: E402
 from process_blueprint.brief import generate_brief  # noqa: E402
 

@@ -95,9 +95,16 @@ returns it; `.to_json()` serialises it.
 - Comprehensive log: `tests/enterprise_log.py` + `scripts/generate_enterprise_log.py`
   (`--cases N`, writes to gitignored `data/`). 5 enterprise tests; 45 total.
 
-## TO GO LIVE WITH BRIEFS
-1. `cp .env.example .env`; paste your `ANTHROPIC_API_KEY` (do NOT commit / do NOT paste in chat).
-2. Restart `uvicorn backend.api:app --port 8000`; upload a log in the UI; click Generate.
+## NOW FULLY LIVE (real keys in .env, verified this session)
+- Backend loads `.env`. Knowledge ingested to Supabase (8 benchmarks, OpenAI embeddings);
+  live pgvector retrieval verified (P2P query → P2P benchmark top hit 0.70).
+- `/api/analyze` **persists** client→engagement→run→facts to Supabase (best-effort;
+  auto-creates an "API Demo" engagement). Verified: 3000-case run persisted.
+- `/api/brief` calls **real claude-opus-4-8**, grounded in benchmark evidence via
+  `SupabaseKB` (kb passed in backend). Verified: client brief, health 93/A, 0 redaction leaks, 47s.
+- Helpers in `backend/api.py`: `_supabase()`, `_knowledge_base()`, `_default_engagement_id()`,
+  `_persist()` — all best-effort, never break the request. Scripts now `load_dotenv` too.
+- ⚠️ Secrets live ONLY in gitignored `.env` (never committed/printed). LLM_PROVIDER=anthropic.
 
 ## Next step (Phase 4 — finish the portal)
 Render the real Petri-net into the map panel (engine PNG/SVG endpoint), branded PDF

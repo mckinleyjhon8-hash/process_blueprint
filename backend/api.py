@@ -56,6 +56,68 @@ _PROVIDER_KEY = {
 }
 
 
+def _supabase():
+    """Return a Supabase client if creds are present, else None (best-effort)."""
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_SERVICE_KEY")
+    if not url or not key:
+        return None
+    try:
+        from supabase import create_client
+
+        return create_client(url, key)
+    except Exception:
+        return None
+
+
+def _knowledge_base():
+    """Supabase-backed knowledge store for benchmark evidence (needs OpenAI key)."""
+    client = _supabase()
+    if client is None or not os.environ.get("OPENAI_API_KEY"):
+        return None
+    try:
+        from process_blueprint.knowledge import get_embedder, SupabaseKB
+
+        return SupabaseKB(get_embedder("openai"), client)
+    except Exception:
+        return None
+
+
+def _default_engagement_id(client) -> Optional[str]:
+    """Get-or-create a singleton 'API Demo' engagement to attach runs to."""
+    try:
+        found = (
+            client.table("engagements").select("id").eq("name", "API Demo").limit(1).execute()
+        )
+        if found.data:
+            return found.data[0]["id"]
+        cl = client.table("clients").insert({"name": "API Demo", "industry": "Demo"}).execute()
+        eng = (
+            client.table("engagements")
+            .insert({"client_id": cl.data[0]["id"], "name": "API Demo", "process_type": "Procure-to-Pay"})
+            .execute()
+        )
+        return eng.data[0]["id"]
+    except Exception:
+        return None
+
+
+def _persist(facts: ProcessFacts) -> Optional[Dict[str, str]]:
+    """Best-effort persistence of a run + facts to Supabase. Never raises."""
+    client = _supabase()
+    if client is None:
+        return None
+    try:
+        from process_blueprint.persistence import insert_process_facts
+
+        eng_id = _default_engagement_id(client)
+        if not eng_id:
+            return None
+        return insert_process_facts(facts, eng_id, client=client)
+    except Exception:
+        return None
+
+
 @app.get("/api/health")
 def health() -> Dict[str, str]:
     return {"status": "ok", "service": "process-blueprint"}
@@ -85,6 +147,7 @@ async def analyze_log(
     _RUNS[run_id] = facts
     payload = facts.to_dict()
     payload["run_id"] = run_id
+    payload["persisted"] = _persist(facts) is not None
     return payload
 
 
@@ -109,7 +172,11 @@ def brief(req: BriefRequest) -> Dict[str, Any]:
         )
 
     result = generate_brief(
-        facts, audience=req.audience, provider=req.provider, model=req.model
+        facts,
+        audience=req.audience,
+        provider=req.provider,
+        model=req.model,
+        kb=_knowledge_base(),  # grounds the brief in live benchmark evidence
     )
     return {
         "audience": result.audience,
