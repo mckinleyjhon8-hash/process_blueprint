@@ -21,9 +21,21 @@ export interface Variant {
   frequency: number;
 }
 
+export interface ComplianceRule {
+  violations: number;
+  pct_of_cases: number;
+  example_cases: string[];
+}
+
+export interface ComplianceReport {
+  n_cases: number;
+  rules: Record<string, ComplianceRule>;
+}
+
 export interface ProcessFacts {
   process_type: string;
   source_file: string;
+  compliance?: ComplianceReport;
   n_events: number;
   n_cases: number;
   n_activities: number;

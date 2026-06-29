@@ -13,9 +13,11 @@ import { Bottlenecks } from "./Bottlenecks";
 import { Variants } from "./Variants";
 import { BriefPanel } from "./BriefPanel";
 import { PhaseTracker } from "./PhaseTracker";
+import { Compliance } from "./Compliance";
 
 const PROCESS_TYPES = [
   "Procure-to-Pay",
+  "UK Freight Brokerage",
   "Order-to-Cash",
   "Issue Resolution",
   "Invoice Processing",
@@ -110,7 +112,7 @@ export function DashboardClient({
         </button>
         <button
           data-testid="run-sample"
-          onClick={() => run(() => analyzeSample(400))}
+          onClick={() => run(() => analyzeSample(processType.includes("Freight") ? 600 : 400, processType))}
           disabled={analyzing}
           className="flex items-center gap-1.5 rounded-xl bg-primary-strong px-3.5 py-2 text-[12.5px] font-semibold text-white transition-colors hover:bg-primary disabled:opacity-50"
         >
@@ -184,6 +186,12 @@ export function DashboardClient({
           <Variants items={facts.top_variants} total={facts.n_cases} />
         </Card>
       </div>
+
+      {facts.compliance && (
+        <Card className="p-5">
+          <Compliance report={facts.compliance} />
+        </Card>
+      )}
 
       <Card className="p-5">
         <BriefPanel facts={facts} runId={facts.run_id} seedBrief={seedBrief} />

@@ -25,8 +25,9 @@ export async function analyzeLog(
   return r.json();
 }
 
-export async function analyzeSample(cases = 400): Promise<ProcessFacts> {
-  const r = await fetch(`${BASE}/api/analyze-sample?cases=${cases}`, { method: "POST" });
+export async function analyzeSample(cases = 400, process = "Procure-to-Pay"): Promise<ProcessFacts> {
+  const q = `cases=${cases}&process=${encodeURIComponent(process)}`;
+  const r = await fetch(`${BASE}/api/analyze-sample?${q}`, { method: "POST" });
   if (!r.ok) throw new Error(await detail(r));
   return r.json();
 }
