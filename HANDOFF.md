@@ -85,19 +85,33 @@ top bottleneck `Approve PO -> Receive Invoice` (~52.9 h), rework `Approve PO x7`
 this object, never the raw event log. `engine.analyze(file_path, process_type=...)`
 returns it; `.to_json()` serialises it.
 
+## Live wiring + production test — DONE this session
+- Frontend ↔ backend wired: `frontend/lib/api.ts` (analyzeLog/getBrief), `lib/health.ts`,
+  `components/dashboard/DashboardClient.tsx` (upload bar → /api/analyze → live render),
+  BriefPanel → /api/brief. Verified live: 3,000-case enterprise CSV through /api/analyze
+  in ~4s; /api/brief returns clean 503 until a key is set.
+- Env: `.env.example` (all keys) + backend `load_dotenv`. **Add real keys to `.env`** (gitignored):
+  `cp .env.example .env` then fill `ANTHROPIC_API_KEY` (or OPENAI/OPENROUTER) + `SUPABASE_SERVICE_KEY`.
+- Comprehensive log: `tests/enterprise_log.py` + `scripts/generate_enterprise_log.py`
+  (`--cases N`, writes to gitignored `data/`). 5 enterprise tests; 45 total.
+
+## TO GO LIVE WITH BRIEFS
+1. `cp .env.example .env`; paste your `ANTHROPIC_API_KEY` (do NOT commit / do NOT paste in chat).
+2. Restart `uvicorn backend.api:app --port 8000`; upload a log in the UI; click Generate.
+
 ## Next step (Phase 4 — finish the portal)
-Wire the frontend to the live FastAPI backend (`frontend/lib/api.ts` → /api/analyze,
-/api/brief), add the upload flow + engagements list (shell ready), render the real
-Petri-net into the process-map panel, add branded PDF export and the consultant
-"approve" gate. Optionally match a specific Figma frame (share a frame URL; needs a
-Dev/Full Figma seat — current seat is View). Then Phase 5 (auth/deploy).
+Render the real Petri-net into the map panel (engine PNG/SVG endpoint), branded PDF
+export, consultant "approve" gate, engagements/knowledge pages. Optionally match a
+Figma frame (needs Dev/Full seat + URL). Then Phase 5 (auth/deploy).
 
 ## Run the full stack
 ```
 pip install -r requirements.txt
+cp .env.example .env            # then add your real keys (gitignored)
 uvicorn backend.api:app --reload --port 8000      # backend
 npm --prefix frontend install                      # once
 npm --prefix frontend run dev                      # frontend → http://localhost:3000
+python scripts/generate_enterprise_log.py          # 3000-case test log → data/
 ```
 Frontend renders on seed data even without the backend; live analysis needs the API.
 

@@ -48,6 +48,7 @@ venv/
 env/
 .env
 .env.*
+!.env.example
 *.key
 
 # ---- Editor / OS ----

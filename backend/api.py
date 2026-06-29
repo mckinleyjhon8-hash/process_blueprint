@@ -26,6 +26,14 @@ from pydantic import BaseModel
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(_ROOT, "src"))
 
+# Load .env (gitignored) so provider keys are available. Never hardcode keys.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(os.path.join(_ROOT, ".env"))
+except ImportError:
+    pass
+
 from process_blueprint import analyze, ProcessFacts            # noqa: E402
 from process_blueprint.brief import generate_brief             # noqa: E402
 

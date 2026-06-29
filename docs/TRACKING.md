@@ -61,7 +61,13 @@ _Last updated: 2026-06-29 (Phase 4 frontend foundation built & running)_
 - [x] Interactive **AI brief panel** with internal/client audience toggle + client-safe badge
 - [x] **FastAPI backend** `backend/api.py`: /api/health, /api/analyze (upload→facts), /api/brief
 - [x] `npm run build` green (TS + lint pass, 0 errors); runs, screenshot verified, no console errors
-- [ ] Wire frontend to live backend (`lib/api.ts`) — currently seeded with real Phase-1 data
+- [x] **Frontend wired LIVE** to backend: `lib/api.ts` + `DashboardClient` (upload → /api/analyze →
+      renders live facts) + BriefPanel (→ /api/brief). `lib/health.ts` mirrors the score.
+- [x] **Secure env**: `.env.example` + backend `load_dotenv`; real keys go in gitignored `.env` only
+- [x] **Comprehensive enterprise test log** (`tests/enterprise_log.py`): tiered approvals, rejections,
+      cancellations, returns, invoice exceptions, escalations, business-hours timing, named resources
+- [x] **Production-scale proof**: live /api/analyze on 3,000 cases / 38,199 events in ~4s →
+      17 activities, 42 variants, fitness 1.0 / precision 0.93. 45 Python tests pass.
 - [ ] Real process-map render (Petri-net PNG/SVG from engine) into the map panel
 - [ ] Branded PDF/HTML export
 - [ ] Consultant approve gate before client-final
