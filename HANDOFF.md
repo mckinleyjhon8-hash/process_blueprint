@@ -3,10 +3,21 @@
 _Session date: 2026-06-29_
 
 ## TL;DR
-Phases **1 and 1.5 are done, tested, and verified**. The pm4py engine emits
-`ProcessFacts`; the Supabase schema is live and round-trip-verified. Next concrete
-step: **Phase 2 — the LangChain + Claude brief layer** (blocked only on the LLM
-data-handling decision).
+Phases **1, 1.5, and 2 are done and tested** (22 passing tests). The pm4py engine
+emits `ProcessFacts`; the Supabase schema is live and round-trip-verified; the
+LangChain + Claude brief layer is built and unit-tested with a fake model. Only
+**live** brief generation is pending (needs `ANTHROPIC_API_KEY` + the data-handling
+decision). Next concrete step: **Phase 3 — knowledge retrieval (pgvector)**.
+
+## Phase 2 — DONE this session
+- `src/process_blueprint/brief/`: `scoring.py` (real health score — sample = 95/A),
+  `context.py` (audience-aware digest; client view omits conformance = leak-proof by
+  construction), `prompts.py` (BABOK skeleton, internal + client systems),
+  `redact.py` (client-safe output guard), `chain.py` (`generate_brief(facts, audience, llm=None)`).
+- Default model `claude-opus-4-8` via langchain-anthropic (no temperature/budget_tokens).
+- `llm=` is injectable → fully unit-tested with `FakeListChatModel`, no API key.
+- CLI `scripts/run_phase2.py [--demo] [--audience client]`. Tests: **22 passed**.
+- Replaces the legacy static `research_agent.py`.
 
 ## Phase 1.5 — DONE this session
 - `supabase/migrations/0001_init.sql`: clients, engagements, event_log_runs,
@@ -44,16 +55,24 @@ top bottleneck `Approve PO -> Receive Invoice` (~52.9 h), rework `Approve PO x7`
 this object, never the raw event log. `engine.analyze(file_path, process_type=...)`
 returns it; `.to_json()` serialises it.
 
-## Next step (Phase 2 — LLM brief)
-Build the LangChain + Claude layer: `ProcessFacts` → executive brief, using
-`docs/METHODOLOGY_MAP.md` for the BABOK-shaped skeleton. Two render targets:
-internal (full mechanics) and client-safe (results only, strips tool/method refs).
-Replaces the legacy static `research_agent.py`. Wire `insert_process_facts` into
-the flow once `SUPABASE_SERVICE_KEY` is available.
+## Next step (Phase 3 — knowledge retrieval)
+Load the curated enterprise-framework subset + KPI benchmarks into Supabase
+`knowledge_chunks` (pgvector), wire retrieval into the brief chain so briefs cite
+benchmark gaps and the client's own docs. Add the per-engagement stakeholder-input
+form (closes the BABOK Elicitation gap). Also: persist briefs/recommendations and
+wire `insert_process_facts` once `SUPABASE_SERVICE_KEY` is available.
 
-## Open decision (blocks Phase 2)
-LLM provider + data handling — need a no-train DPA or a local model for client data.
-eu-west-1 Supabase already helps with residency.
+## Open decision (now blocks only LIVE Phase 2 generation, not the build)
+LLM provider + data handling — need a no-train DPA or a local model before sending
+real client data to Claude. eu-west-1 Supabase already helps with residency. The
+code is provider-pluggable via `generate_brief(..., llm=...)`, so swapping to a
+local model is a one-line change.
+
+## Phase 2 gotchas
+- Opus 4.8 rejects `temperature`/`budget_tokens` (400). `default_llm()` sets neither.
+- The client-safe guarantee is two-layer: (1) client digest never contains the
+  conformance numbers; (2) `redact.scan()` flags any leaked internal term in output.
+- Tests never hit the network — they inject `FakeListChatModel`.
 
 ## Gotchas
 - pm4py is **AGPL**: keep it behind `engine.analyze()`; never expose to external users.

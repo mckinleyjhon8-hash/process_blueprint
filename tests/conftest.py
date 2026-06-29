@@ -25,3 +25,10 @@ def sample_df():
 def sample_csv(tmp_path):
     path = os.path.join(tmp_path, "sample_p2p.csv")
     return write_sample_csv(path, n_cases=60, seed=42)
+
+
+@pytest.fixture(scope="session")
+def sample_facts(sample_df):
+    from process_blueprint.engine import analyze_dataframe
+
+    return analyze_dataframe(sample_df, process_type="Procure-to-Pay")
