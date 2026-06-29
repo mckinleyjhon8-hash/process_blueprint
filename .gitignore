@@ -1,5 +1,6 @@
 # ---- Nested GitHub Desktop clone of this repo (do NOT track) ----
-process_blueprint/
+# Leading slash = repo root ONLY, so it does not match src/process_blueprint/.
+/process_blueprint/
 
 # ---- Vendored reference repos (dependencies, NOT committed) ----
 autoresearch-master/
