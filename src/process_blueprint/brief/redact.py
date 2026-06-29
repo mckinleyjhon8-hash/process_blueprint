@@ -10,6 +10,7 @@ terms that should never reach a client, and can strip them if needed.
 
 from __future__ import annotations
 
+import re
 from typing import List
 
 # Terms that must never appear in a client-facing deliverable.
@@ -29,17 +30,20 @@ INTERNAL_TERMS: List[str] = [
 ]
 
 
+def _pattern(term: str) -> str:
+    # Word boundaries prevent false positives like "xes" inside "indexes"/"taxes".
+    return r"\b" + re.escape(term) + r"\b"
+
+
 def scan(text: str) -> List[str]:
     """Return the sorted, de-duplicated internal terms found in *text*."""
     low = text.lower()
-    return sorted({term for term in INTERNAL_TERMS if term in low})
+    return sorted({t for t in INTERNAL_TERMS if re.search(_pattern(t), low)})
 
 
 def clean(text: str, replacement: str = "[internal detail removed]") -> str:
     """Replace any internal terms with a neutral placeholder (last-resort)."""
-    import re
-
     out = text
     for term in INTERNAL_TERMS:
-        out = re.sub(re.escape(term), replacement, out, flags=re.IGNORECASE)
+        out = re.sub(_pattern(term), replacement, out, flags=re.IGNORECASE)
     return out

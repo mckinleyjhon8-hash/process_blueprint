@@ -138,6 +138,7 @@ export function BriefPanel({
 
       <div className="mt-4 flex gap-2">
         <button
+          data-testid="generate-brief"
           onClick={generate}
           disabled={!runId || loading}
           className="flex items-center gap-1.5 rounded-xl bg-primary-strong px-3.5 py-2 text-[12.5px] font-semibold text-white transition-colors hover:bg-primary disabled:cursor-not-allowed disabled:opacity-40"

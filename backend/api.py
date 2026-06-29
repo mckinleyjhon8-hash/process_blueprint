@@ -25,6 +25,7 @@ from pydantic import BaseModel
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(_ROOT, "src"))
+sys.path.insert(0, _ROOT)  # so the sample-log generator (tests/) is importable
 
 # Load .env (gitignored) so provider keys are available. Never hardcode keys.
 try:
@@ -35,6 +36,7 @@ except ImportError:
     pass
 
 from process_blueprint import analyze, ProcessFacts            # noqa: E402
+from process_blueprint.engine import analyze_dataframe         # noqa: E402
 from process_blueprint.brief import generate_brief             # noqa: E402
 
 app = FastAPI(title="Process Blueprint API", version="0.4.0")
@@ -142,6 +144,29 @@ async def analyze_log(
             os.unlink(tmp.name)
         except OSError:
             pass
+
+    run_id = uuid.uuid4().hex
+    _RUNS[run_id] = facts
+    payload = facts.to_dict()
+    payload["run_id"] = run_id
+    payload["persisted"] = _persist(facts) is not None
+    return payload
+
+
+@app.post("/api/analyze-sample")
+def analyze_sample(cases: int = 400) -> Dict[str, Any]:
+    """Generate a comprehensive enterprise P2P log server-side and analyse it.
+
+    One-click live demo of the whole pipeline — no file upload needed.
+    """
+    try:
+        from tests.enterprise_log import build_enterprise_log
+    except Exception as exc:  # pragma: no cover
+        raise HTTPException(status_code=500, detail=f"sample generator unavailable: {exc}")
+
+    df = build_enterprise_log(n_cases=max(50, min(cases, 5000)), seed=7)
+    facts = analyze_dataframe(df, process_type="Procure-to-Pay")
+    facts.source_file = f"sample_enterprise_{len(df['case:concept:name'].unique())}cases.csv"
 
     run_id = uuid.uuid4().hex
     _RUNS[run_id] = facts

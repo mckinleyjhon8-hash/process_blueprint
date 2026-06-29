@@ -87,3 +87,11 @@ def test_redact_scan_and_clean():
     assert redact.scan("uses pm4py and a Petri net") == ["petri net", "pm4py"]
     cleaned = redact.clean("uses pm4py here")
     assert "pm4py" not in cleaned.lower()
+
+
+def test_redact_no_false_positives():
+    # 'xes' must not match inside 'indexes'/'taxes'; 'dfg' not inside words.
+    assert redact.scan("we reviewed indexes, taxes and boxes of invoices") == []
+    # but a genuine standalone term is still caught
+    assert "xes" in redact.scan("exported to data.xes")
+    assert "event log" in redact.scan("the raw event log was ingested")

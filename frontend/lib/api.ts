@@ -25,6 +25,12 @@ export async function analyzeLog(
   return r.json();
 }
 
+export async function analyzeSample(cases = 400): Promise<ProcessFacts> {
+  const r = await fetch(`${BASE}/api/analyze-sample?cases=${cases}`, { method: "POST" });
+  if (!r.ok) throw new Error(await detail(r));
+  return r.json();
+}
+
 export async function getBrief(
   runId: string,
   audience: "internal" | "client",

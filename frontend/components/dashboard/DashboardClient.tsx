@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { RefreshCw, Workflow, Upload, Loader2, AlertTriangle } from "lucide-react";
+import { RefreshCw, Workflow, Upload, Loader2, AlertTriangle, Play } from "lucide-react";
 import type { ProcessFacts } from "@/lib/types";
-import { analyzeLog } from "@/lib/api";
+import { analyzeLog, analyzeSample } from "@/lib/api";
 import { computeHealth } from "@/lib/health";
 import { Card } from "@/components/ui/Card";
 import { KpiRibbon } from "./KpiRibbon";
@@ -41,17 +41,21 @@ export function DashboardClient({
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    await run(() => analyzeLog(file, processType));
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
+  async function run(fn: () => Promise<ProcessFacts>) {
     setAnalyzing(true);
     setError(null);
     try {
-      const result = await analyzeLog(file, processType);
+      const result = await fn();
       setFacts(result);
       setIsLive(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Analysis failed");
     } finally {
       setAnalyzing(false);
-      if (fileRef.current) fileRef.current.value = "";
     }
   }
 
@@ -100,13 +104,21 @@ export function DashboardClient({
         <button
           onClick={() => fileRef.current?.click()}
           disabled={analyzing}
+          className="flex items-center gap-1.5 rounded-xl border border-line bg-panel-2/60 px-3.5 py-2 text-[12.5px] font-semibold text-fg-2 transition-colors hover:text-fg disabled:opacity-50"
+        >
+          <Upload size={14} /> Upload log (CSV / XES)
+        </button>
+        <button
+          data-testid="run-sample"
+          onClick={() => run(() => analyzeSample(400))}
+          disabled={analyzing}
           className="flex items-center gap-1.5 rounded-xl bg-primary-strong px-3.5 py-2 text-[12.5px] font-semibold text-white transition-colors hover:bg-primary disabled:opacity-50"
         >
-          {analyzing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-          {analyzing ? "Mining…" : "Upload event log (CSV / XES)"}
+          {analyzing ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
+          {analyzing ? "Mining live…" : "Run sample analysis (live)"}
         </button>
         <span className="text-[12px] text-muted">
-          {isLive ? "Showing your uploaded data." : "Showing sample data — upload a log to analyze live."}
+          {isLive ? "Live data from the engine." : "Showing seed data — run a live analysis →"}
         </span>
         {error && (
           <span className="flex items-center gap-1.5 rounded-lg bg-danger/10 px-2.5 py-1 text-[12px] text-danger ring-1 ring-inset ring-danger/25">
