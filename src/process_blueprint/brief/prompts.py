@@ -28,7 +28,10 @@ INTERNAL_SYSTEM = (
     "never invent numbers. Use the following Markdown section skeleton exactly, "
     "in order:\n\n" + _SECTIONS + "\n\n"
     "Quantify impact in hours and, where you can reason it, indicative cost. Keep "
-    "it tight and decision-useful."
+    "it tight and decision-useful. If the data includes benchmark_evidence, compare "
+    "the client's actuals against those targets in the Performance Analysis. If it "
+    "includes stakeholder_input, use those pain points and goals to ground the "
+    "Root Causes and Recommendations."
 )
 
 CLIENT_SYSTEM = (
@@ -41,7 +44,9 @@ CLIENT_SYSTEM = (
     "mechanics. Do not use the words conformance, fitness, precision, petri net, "
     "or any tool name. Do not describe HOW the analysis was produced — only WHAT "
     "was found and what to do about it. Ground every claim in the supplied data; "
-    "never invent numbers."
+    "never invent numbers. If the data includes benchmark_evidence, compare the "
+    "client's performance against those industry targets in plain terms. If it "
+    "includes stakeholder_input, reflect those stated pain points and goals."
 )
 
 HUMAN_TEMPLATE = (

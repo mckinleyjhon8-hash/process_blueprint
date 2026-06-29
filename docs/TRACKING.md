@@ -3,7 +3,7 @@
 > Update this as work lands. `[x]` done · `[~]` in progress · `[ ]` todo.
 > Rule: nothing is `[x]` unless it has a passing test or a verified run.
 
-_Last updated: 2026-06-29 (Phase 2 LLM brief layer built & tested)_
+_Last updated: 2026-06-29 (Phase 3 knowledge retrieval built & tested)_
 
 ## Phase 1 — Mining engine → ProcessFacts  ✅
 - [x] `facts.py` — ProcessFacts / ModelQuality / Bottleneck / Variant + JSON
@@ -39,11 +39,19 @@ _Last updated: 2026-06-29 (Phase 2 LLM brief layer built & tested)_
 - [ ] Live generation against real Claude — needs `ANTHROPIC_API_KEY` + data-handling decision
 - [ ] `methodology_map.yaml` as a standalone asset (currently encoded in prompts.py)
 
-## Phase 3 — Knowledge retrieval
-- [ ] Curate framework subset into `knowledge/`
-- [ ] Benchmarks loaded; pgvector retrieval wired
-- [ ] Stakeholder-input form
-- [ ] Tests: retrieval returns relevant chunks for a process type
+## Phase 3 — Knowledge retrieval  ✅ (built & tested; live ingest needs keys)
+- [x] `knowledge/` package: types, embeddings factory (openai|fake), benchmarks,
+      store (InMemoryKB + SupabaseKB), retrieval
+- [x] 8 process-type KPI benchmarks as retrievable chunks (`benchmarks.py`)
+- [x] Migration `0002_knowledge_retrieval.sql` applied: `match_knowledge_chunks`
+      pgvector RPC + `stakeholder_inputs` table — verified live (sim=1.0, then cleaned)
+- [x] Evidence + stakeholder input wired into `build_context` / `generate_brief`
+      (optional `kb=`, `evidence=`, `stakeholder=`, `engagement_id=`)
+- [x] Prompts instruct using benchmark_evidence + stakeholder_input
+- [x] Tests with fake embedder — **40 passed** total; `ingest_knowledge.py --dry-run`
+- [ ] Live ingest into Supabase — needs OPENAI_API_KEY + SUPABASE_SERVICE_KEY
+- [ ] Stakeholder-input UI form (Phase 4 Streamlit; data model + wiring done)
+- [ ] Methodology subset chunks (benchmarks done; curated framework text next)
 
 ## Phase 4 — Portal + deliverable
 - [ ] Streamlit dashboard on ProcessFacts

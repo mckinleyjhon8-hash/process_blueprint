@@ -3,11 +3,25 @@
 _Session date: 2026-06-29_
 
 ## TL;DR
-Phases **1, 1.5, and 2 are done and tested** (22 passing tests). The pm4py engine
-emits `ProcessFacts`; the Supabase schema is live and round-trip-verified; the
-LangChain + Claude brief layer is built and unit-tested with a fake model. Only
-**live** brief generation is pending (needs `ANTHROPIC_API_KEY` + the data-handling
-decision). Next concrete step: **Phase 3 — knowledge retrieval (pgvector)**.
+Phases **1, 1.5, 2, and 3 are done and tested** (40 passing tests). pm4py engine
+→ `ProcessFacts`; Supabase schema live (now 7 tables + a pgvector RPC); LangChain
+brief layer with pluggable provider (anthropic/openai/openrouter); Phase 3 adds
+RAG evidence (benchmarks) + stakeholder input wired into the brief. Pending live
+bits need keys only. Next concrete step: **Phase 4 — Streamlit portal + branded
+report export**.
+
+## Phase 3 — DONE this session
+- `src/process_blueprint/knowledge/`: `embeddings.py` (factory: openai default /
+  fake for tests, 1536 dims), `benchmarks.py` (8 process-type KPI chunks),
+  `store.py` (InMemoryKB + SupabaseKB via pgvector RPC), `retrieval.py`, `types.py`.
+- Migration `0002_knowledge_retrieval.sql` applied + verified live:
+  `match_knowledge_chunks(query_embedding, match_count, filter_source, filter_engagement)`
+  (cosine; returned sim=1.0 on a round-trip, then cleaned) and `stakeholder_inputs` table.
+- `generate_brief(..., kb=, evidence=, stakeholder=, engagement_id=)` — retrieves
+  evidence and feeds benchmark comparison + the qualitative WHY into the prompt.
+- `scripts/ingest_knowledge.py [--dry-run]` loads benchmarks (live needs keys).
+- Tests use the deterministic fake embedder (identical text → identical vector),
+  so retrieval is validated without network. 40 passing.
 
 ## Phase 2 — DONE this session
 - `src/process_blueprint/brief/`: `scoring.py` (real health score — sample = 95/A),
@@ -55,12 +69,16 @@ top bottleneck `Approve PO -> Receive Invoice` (~52.9 h), rework `Approve PO x7`
 this object, never the raw event log. `engine.analyze(file_path, process_type=...)`
 returns it; `.to_json()` serialises it.
 
-## Next step (Phase 3 — knowledge retrieval)
-Load the curated enterprise-framework subset + KPI benchmarks into Supabase
-`knowledge_chunks` (pgvector), wire retrieval into the brief chain so briefs cite
-benchmark gaps and the client's own docs. Add the per-engagement stakeholder-input
-form (closes the BABOK Elicitation gap). Also: persist briefs/recommendations and
-wire `insert_process_facts` once `SUPABASE_SERVICE_KEY` is available.
+## Next step (Phase 4 — portal + deliverable)
+Build the internal Streamlit portal on `ProcessFacts`: upload log → run engine →
+show KPIs/process map/health score → generate brief (internal + client views) →
+branded PDF/HTML export styled with the UI/UX Pro Max data. Add the
+stakeholder-input form (data model + brief wiring already done in Phase 3) and the
+consultant "approve" gate before a brief goes client-final. Also wire live
+persistence (`insert_process_facts`, knowledge ingest) once keys are available.
+
+Remaining Phase 3 polish (optional): add curated methodology-framework chunks
+(benchmarks already loaded) and run the live ingest into Supabase.
 
 ## Open decision (now blocks only LIVE Phase 2 generation, not the build)
 LLM provider + data handling — need a no-train DPA or a local model before sending

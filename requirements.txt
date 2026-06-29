@@ -16,8 +16,8 @@ langchain-core>=1.0
 langchain-anthropic>=0.3    # provider "anthropic" — default, claude-opus-4-8
 langchain-openai>=0.2       # providers "openai" and "openrouter" (OpenAI-compatible)
 
+# --- Phase 3: knowledge / persistence client (runtime only; tests don't need it) ---
+supabase>=2.0           # SupabaseKB + persistence; schema already applied
+
 # --- Dev / test ---
 pytest>=8.0
-
-# --- Later phases (uncomment when reached) ---
-# supabase>=2.0           # Phase 3: persistence client (schema already applied)

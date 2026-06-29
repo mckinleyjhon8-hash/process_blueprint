@@ -46,17 +46,35 @@ def generate_brief(
     llm: Any = None,
     provider: Optional[str] = None,
     model: Optional[str] = None,
+    evidence: Optional[List[dict]] = None,
+    stakeholder: Optional[dict] = None,
+    kb: Any = None,
+    engagement_id: Optional[str] = None,
 ) -> BriefResult:
     """Generate an executive brief from ProcessFacts for the given audience.
 
     Pass `llm=` to inject any LangChain chat model (used in tests), or
     `provider=`/`model=` to pick anthropic/openai/openrouter at call time.
+
+    Phase 3: pass `evidence=` directly, or `kb=` (a knowledge store) to retrieve
+    benchmark/methodology/client-doc evidence for this process. `stakeholder=`
+    supplies the qualitative WHY (pain points, goals).
     """
     audience = audience.lower().strip()
     if audience not in ("internal", "client"):
         raise ValueError("audience must be 'internal' or 'client'")
 
-    digest = build_context(facts, audience)
+    if evidence is None and kb is not None:
+        from ..knowledge import retrieve_evidence
+
+        findings = ", ".join(
+            f"{b.source} to {b.target}" for b in facts.bottlenecks[:3]
+        )
+        evidence = retrieve_evidence(
+            kb, facts.process_type, findings_text=findings, engagement_id=engagement_id
+        )
+
+    digest = build_context(facts, audience, evidence=evidence, stakeholder=stakeholder)
     prompt = build_prompt(audience)
     model_llm = llm if llm is not None else default_llm(provider=provider, model=model)
 

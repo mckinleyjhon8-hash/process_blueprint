@@ -9,7 +9,7 @@ Audience-aware by construction:
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 from ..facts import ProcessFacts
 from .scoring import health_score
@@ -19,8 +19,18 @@ def _hours(seconds: float) -> float:
     return round((seconds or 0.0) / 3600.0, 1)
 
 
-def build_context(facts: ProcessFacts, audience: str = "internal") -> Dict[str, Any]:
-    """Build the digest dict passed to the prompt for the given audience."""
+def build_context(
+    facts: ProcessFacts,
+    audience: str = "internal",
+    evidence: Optional[List[Dict[str, Any]]] = None,
+    stakeholder: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Build the digest dict passed to the prompt for the given audience.
+
+    `evidence` — retrieved benchmark/methodology/client-doc chunks (Phase 3).
+    `stakeholder` — the WHY behind the data (pain points, goals) — closes the
+    BABOK Elicitation gap. Both are safe for either audience (business language).
+    """
     score, grade = health_score(facts)
 
     digest: Dict[str, Any] = {
@@ -56,5 +66,12 @@ def build_context(facts: ProcessFacts, audience: str = "internal") -> Dict[str, 
             "generalization": facts.model.generalization,
             "simplicity": facts.model.simplicity,
         }
+
+    if evidence:
+        digest["benchmark_evidence"] = [
+            {"title": e.get("title"), "content": e.get("content")} for e in evidence
+        ]
+    if stakeholder:
+        digest["stakeholder_input"] = stakeholder
 
     return digest

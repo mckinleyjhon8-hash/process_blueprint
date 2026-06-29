@@ -85,7 +85,7 @@ Full detail in `docs/PHASES.md`. **Live status in `docs/TRACKING.md`** (update i
 | **1** | Hardened engine → `ProcessFacts` (inductive+heuristics, real conformance, KPIs, bottlenecks, rework) | ✅ **DONE & tested** |
 | 1.5 | Supabase schema (engagements/runs/facts/knowledge+pgvector/recommendations) | ✅ **DONE & verified** |
 | 2 | LangChain + Claude brief from facts; internal + client-safe templates | ✅ **built & tested** (live needs API key) |
-| 3 | Knowledge retrieval (benchmarks + curated framework + client docs) | ⬜ next |
+| 3 | Knowledge retrieval (benchmarks + curated framework + client docs) | ✅ **built & tested** (live ingest needs keys) |
 | 4 | Streamlit portal + branded PDF export (UI/UX Pro Max) | ⬜ |
 | 5 | Internal auth, engagement workspaces, deployment | ⬜ |
 
