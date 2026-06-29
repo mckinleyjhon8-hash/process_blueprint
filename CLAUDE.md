@@ -38,7 +38,10 @@ Client docs (PDF/SOPs) ─► Supabase pgvector ─┘        (facts + evidence 
 - **Orchestration (LangChain)** — composes facts + retrieved evidence → brief. **Pluggable provider**
   via `LLM_PROVIDER`: `anthropic` (default, `claude-opus-4-8`), `openai`, or `openrouter`
   (OpenAI-compatible). Swap with `generate_brief(..., provider=..., model=...)` or env vars.
-- **Portal (Streamlit)** — internal UI; styled using UI/UX Pro Max design data.
+- **Portal (Next.js 16 + React 19 + Tailwind v4, `frontend/`)** — premium-dark enterprise UI
+  (UI/UX Pro Max: indigo/violet, Plus Jakarta Sans + JetBrains Mono). Talks to a thin
+  **FastAPI** backend (`backend/api.py`) that wraps the engine. Run: `uvicorn backend.api:app --port 8000`
+  + `npm --prefix frontend run dev`. (Figma optional — needs Dev seat + frame URL.)
 - **Persistence/auth (Supabase)** — internal team only; per-engagement data.
 
 ### Components & licenses (resolved)
@@ -86,7 +89,7 @@ Full detail in `docs/PHASES.md`. **Live status in `docs/TRACKING.md`** (update i
 | 1.5 | Supabase schema (engagements/runs/facts/knowledge+pgvector/recommendations) | ✅ **DONE & verified** |
 | 2 | LangChain + Claude brief from facts; internal + client-safe templates | ✅ **built & tested** (live needs API key) |
 | 3 | Knowledge retrieval (benchmarks + curated framework + client docs) | ✅ **built & tested** (live ingest needs keys) |
-| 4 | Streamlit portal + branded PDF export (UI/UX Pro Max) | ⬜ |
+| 4 | **Next.js + Tailwind** portal (premium-dark, UI/UX Pro Max) + FastAPI backend; branded export | 🟡 **foundation built & running** |
 | 5 | Internal auth, engagement workspaces, deployment | ⬜ |
 
 ### Tracking method

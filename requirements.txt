@@ -19,5 +19,10 @@ langchain-openai>=0.2       # providers "openai" and "openrouter" (OpenAI-compat
 # --- Phase 3: knowledge / persistence client (runtime only; tests don't need it) ---
 supabase>=2.0           # SupabaseKB + persistence; schema already applied
 
+# --- Phase 4: backend API (FastAPI serving the engine to the Next.js frontend) ---
+fastapi>=0.110
+uvicorn[standard]>=0.27
+python-multipart>=0.0.9  # required for file upload on /api/analyze
+
 # --- Dev / test ---
 pytest>=8.0

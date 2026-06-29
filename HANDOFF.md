@@ -3,12 +3,28 @@
 _Session date: 2026-06-29_
 
 ## TL;DR
-Phases **1, 1.5, 2, and 3 are done and tested** (40 passing tests). pm4py engine
-→ `ProcessFacts`; Supabase schema live (now 7 tables + a pgvector RPC); LangChain
-brief layer with pluggable provider (anthropic/openai/openrouter); Phase 3 adds
-RAG evidence (benchmarks) + stakeholder input wired into the brief. Pending live
-bits need keys only. Next concrete step: **Phase 4 — Streamlit portal + branded
-report export**.
+Phases **1–3 done & tested** (40 passing tests); **Phase 4 frontend foundation is
+built and running**. pm4py engine → `ProcessFacts`; Supabase live (7 tables + pgvector
+RPC); pluggable LLM brief; RAG evidence + stakeholder input. Phase 4 adds a
+**Next.js 16 enterprise frontend** (premium-dark, UI/UX Pro Max) on a **FastAPI**
+backend — builds clean, runs, screenshot-verified.
+
+## Phase 4 — frontend foundation DONE this session
+- `frontend/` — Next.js 16 + React 19 + Tailwind v4. Design system in `app/globals.css`
+  (premium-dark tokens: bg/panel/line/fg/muted/primary/violet/success…; Plus Jakarta
+  Sans + JetBrains Mono). NOTE: Next 16 has breaking changes — see `frontend/AGENTS.md`
+  and `node_modules/next/dist/docs/`.
+- App shell: `components/shell/{Sidebar,Topbar}.tsx`. Flagship dashboard `app/page.tsx`
+  with `components/dashboard/*` (KpiRibbon, HealthScore ring, ModelRadar SVG, Bottlenecks,
+  Variants, PhaseTracker) + interactive `BriefPanel` (internal/client toggle, client-safe badge).
+- Seed data `lib/seed.ts` (real Phase-1 numbers) + `lib/types.ts` (ProcessFacts TS mirror)
+  so the UI renders standalone. `npm run build` is green; runs with no console errors.
+- Backend `backend/api.py` (FastAPI): /api/health, /api/analyze (upload→facts+run_id),
+  /api/brief (run_id+audience→markdown). pm4py stays isolated here. Run:
+  `uvicorn backend.api:app --reload --port 8000`.
+- Preview: `.claude/launch.json` defines the `frontend` dev server (port 3000).
+- Charts are hand-rolled SVG (no chart dep); only extra npm dep is `lucide-react`.
+- node_modules/.next are gitignored (frontend/.gitignore + root safety net).
 
 ## Phase 3 — DONE this session
 - `src/process_blueprint/knowledge/`: `embeddings.py` (factory: openai default /
@@ -69,16 +85,21 @@ top bottleneck `Approve PO -> Receive Invoice` (~52.9 h), rework `Approve PO x7`
 this object, never the raw event log. `engine.analyze(file_path, process_type=...)`
 returns it; `.to_json()` serialises it.
 
-## Next step (Phase 4 — portal + deliverable)
-Build the internal Streamlit portal on `ProcessFacts`: upload log → run engine →
-show KPIs/process map/health score → generate brief (internal + client views) →
-branded PDF/HTML export styled with the UI/UX Pro Max data. Add the
-stakeholder-input form (data model + brief wiring already done in Phase 3) and the
-consultant "approve" gate before a brief goes client-final. Also wire live
-persistence (`insert_process_facts`, knowledge ingest) once keys are available.
+## Next step (Phase 4 — finish the portal)
+Wire the frontend to the live FastAPI backend (`frontend/lib/api.ts` → /api/analyze,
+/api/brief), add the upload flow + engagements list (shell ready), render the real
+Petri-net into the process-map panel, add branded PDF export and the consultant
+"approve" gate. Optionally match a specific Figma frame (share a frame URL; needs a
+Dev/Full Figma seat — current seat is View). Then Phase 5 (auth/deploy).
 
-Remaining Phase 3 polish (optional): add curated methodology-framework chunks
-(benchmarks already loaded) and run the live ingest into Supabase.
+## Run the full stack
+```
+pip install -r requirements.txt
+uvicorn backend.api:app --reload --port 8000      # backend
+npm --prefix frontend install                      # once
+npm --prefix frontend run dev                      # frontend → http://localhost:3000
+```
+Frontend renders on seed data even without the backend; live analysis needs the API.
 
 ## Open decision (now blocks only LIVE Phase 2 generation, not the build)
 LLM provider + data handling — need a no-train DPA or a local model before sending

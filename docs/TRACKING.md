@@ -3,7 +3,7 @@
 > Update this as work lands. `[x]` done · `[~]` in progress · `[ ]` todo.
 > Rule: nothing is `[x]` unless it has a passing test or a verified run.
 
-_Last updated: 2026-06-29 (Phase 3 knowledge retrieval built & tested)_
+_Last updated: 2026-06-29 (Phase 4 frontend foundation built & running)_
 
 ## Phase 1 — Mining engine → ProcessFacts  ✅
 - [x] `facts.py` — ProcessFacts / ModelQuality / Bottleneck / Variant + JSON
@@ -53,10 +53,20 @@ _Last updated: 2026-06-29 (Phase 3 knowledge retrieval built & tested)_
 - [ ] Stakeholder-input UI form (Phase 4 Streamlit; data model + wiring done)
 - [ ] Methodology subset chunks (benchmarks done; curated framework text next)
 
-## Phase 4 — Portal + deliverable
-- [ ] Streamlit dashboard on ProcessFacts
-- [ ] Branded PDF/HTML export (UI/UX Pro Max styling)
-- [ ] Consultant approve gate
+## Phase 4 — Portal + deliverable  🟡 (frontend foundation built & running)
+- [x] **Next.js 16 + React 19 + Tailwind v4** app in `frontend/` (premium-dark
+      enterprise design system from UI/UX Pro Max: indigo/violet, Plus Jakarta Sans + JetBrains Mono)
+- [x] App shell (sidebar + topbar), flagship **Dashboard**: KPI ribbon, health-score
+      ring, model-quality radar (SVG), bottlenecks, variants, phase tracker
+- [x] Interactive **AI brief panel** with internal/client audience toggle + client-safe badge
+- [x] **FastAPI backend** `backend/api.py`: /api/health, /api/analyze (upload→facts), /api/brief
+- [x] `npm run build` green (TS + lint pass, 0 errors); runs, screenshot verified, no console errors
+- [ ] Wire frontend to live backend (`lib/api.ts`) — currently seeded with real Phase-1 data
+- [ ] Real process-map render (Petri-net PNG/SVG from engine) into the map panel
+- [ ] Branded PDF/HTML export
+- [ ] Consultant approve gate before client-final
+- [ ] Engagements list, upload flow, knowledge admin pages (shell ready)
+- [ ] Optional: match a specific Figma frame (needs Dev/Full seat + frame URL)
 
 ## Phase 5 — Hardening
 - [ ] Internal auth + engagement workspaces

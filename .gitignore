@@ -2,6 +2,13 @@
 # Leading slash = repo root ONLY, so it does not match src/process_blueprint/.
 /process_blueprint/
 
+# ---- Frontend build artifacts (safety net; frontend/.gitignore also covers these) ----
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.turbo/
+next-env.d.ts
+
 # ---- Vendored reference repos (dependencies, NOT committed) ----
 autoresearch-master/
 langchain-master/

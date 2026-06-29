@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+/* ---- Process Blueprint — premium-dark enterprise design system ----
+   Derived from the UI/UX Pro Max enterprise palette (indigo #4F46E5 /
+   violet #7C3AED), adapted to a high-contrast dark command-center. */
+@theme {
+  --color-bg: #0a0e17;
+  --color-bg-elev: #0e1320;
+  --color-panel: #111726;
+  --color-panel-2: #161d30;
+  --color-line: #232b40;
+  --color-line-soft: #1a2236;
+  --color-fg: #e8ecf6;
+  --color-fg-2: #b9c2d6;
+  --color-muted: #7a85a0;
+  --color-primary: #6366f1;
+  --color-primary-strong: #4f46e5;
+  --color-violet: #8b5cf6;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #38bdf8;
+
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+}
+
+@theme inline {
+  --font-sans: var(--font-jakarta);
+  --font-mono: var(--font-jet);
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(99, 102, 241, 0.1), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, rgba(139, 92, 246, 0.08), transparent 55%),
+    var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans), "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #222a3e;
+  border-radius: 8px;
+  border: 2px solid var(--color-bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2c3650;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.rise {
+  animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
