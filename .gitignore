@@ -1,0 +1,46 @@
+# ---- Vendored reference repos (dependencies, NOT committed) ----
+autoresearch-master/
+langchain-master/
+pm4py-release/
+ragflow-main/
+ui-ux-pro-max-skill-main/
+
+# ---- Copyrighted / licensed material (do NOT redistribute) ----
+# BABOK is an IIBA member copy: "Not for Distribution or Resale".
+BABOK_Guide_v3_Member.pdf
+*.pdf
+
+# ---- Client data / PII (never commit event logs) ----
+*.xes
+*.csv
+/data/
+/client_data/
+
+# ---- Generated artifacts ----
+artifacts_*.json
+*.png
+process_skeleton.png
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# ---- Environments / secrets ----
+.venv/
+venv/
+env/
+.env
+.env.*
+*.key
+
+# ---- Editor / OS ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

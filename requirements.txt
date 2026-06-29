@@ -1,0 +1,21 @@
+# Process Blueprint — core dependencies
+# Phase 1 (mining engine) is fully covered by pm4py + pandas.
+
+# --- Phase 1: mining engine ---
+pm4py>=2.7,<3
+pandas>=2.0
+numpy>=1.24
+
+# --- UI / portal (Phase 4) ---
+streamlit>=1.28
+graphviz            # requires system Graphviz binaries for image rendering
+Pillow
+
+# --- Dev / test ---
+pytest>=8.0
+
+# --- Later phases (uncomment when reached) ---
+# langchain>=0.3          # Phase 2: LLM orchestration
+# langchain-anthropic     # Phase 2: Claude provider
+# supabase>=2.0           # Phase 1.5/3: persistence + pgvector
+# anthropic>=0.40

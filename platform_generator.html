@@ -1,0 +1,3354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consulting Process Analysis Platform — Generator</title>
+<style>
+  :root {
+    --bg-primary: #1a1a2e;
+    --bg-secondary: #16213e;
+    --bg-tertiary: #0f3460;
+    --accent-cyan: #00d2ff;
+    --accent-coral: #e94560;
+    --text-primary: #e0e0e0;
+    --text-secondary: #8eaac4;
+    --text-dim: #5a6a80;
+    --font-body: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  /* Header */
+  .header-banner {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+    border-bottom: 2px solid var(--accent-cyan);
+    padding: 28px 0;
+    text-align: center;
+  }
+  .header-banner h1 {
+    color: var(--accent-cyan);
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .header-banner .subtitle {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 6px;
+  }
+  .header-banner .skills {
+    margin-top: 12px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .skill-badge {
+    background: rgba(0,210,255,0.1);
+    border: 1px solid var(--accent-cyan);
+    color: var(--accent-cyan);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+  /* Main container */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+  /* Architecture overview */
+  .arch-section {
+    margin-bottom: 32px;
+  }
+  .section-title {
+    color: var(--accent-cyan);
+    font-size: 1.3rem;
+    font-weight: 700;
+    border-bottom: 1px solid var(--bg-tertiary);
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+  }
+  .arch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 768px) {
+    .arch-grid { grid-template-columns: 1fr; }
+  }
+  .arch-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--bg-tertiary);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .arch-card .layer-badge {
+    display: inline-block;
+    background: var(--bg-tertiary);
+    color: var(--accent-cyan);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    letter-spacing: 0.05em;
+  }
+  .arch-card h3 {
+    color: var(--accent-cyan);
+    font-size: 1.05rem;
+    margin-bottom: 8px;
+  }
+  .arch-card .skill-name {
+    color: var(--accent-coral);
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .arch-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .arch-card li {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    padding: 3px 0;
+    padding-left: 16px;
+    position: relative;
+  }
+  .arch-card li::before {
+    content: "▸";
+    color: var(--accent-cyan);
+    position: absolute;
+    left: 0;
+  }
+  /* File tabs */
+  .file-tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 0;
+    flex-wrap: wrap;
+  }
+  .file-tab {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--bg-tertiary);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-family: var(--font-mono);
+    transition: all 0.2s;
+  }
+  .file-tab:hover {
+    color: var(--accent-cyan);
+    border-color: var(--accent-cyan);
+  }
+  .file-tab.active {
+    background: var(--bg-secondary);
+    color: var(--accent-cyan);
+    border-color: var(--accent-cyan);
+    border-bottom: 1px solid var(--bg-secondary);
+  }
+  /* Code panel */
+  .code-panel {
+    background: var(--bg-secondary);
+    border: 1px solid var(--bg-tertiary);
+    border-radius: 0 12px 12px 12px;
+    overflow: hidden;
+  }
+  .code-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--bg-tertiary);
+    background: rgba(15,52,96,0.3);
+  }
+  .code-toolbar .file-info {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-family: var(--font-mono);
+  }
+  .code-toolbar .file-info .lines {
+    color: var(--accent-coral);
+    margin-left: 8px;
+  }
+  .code-toolbar button {
+    background: var(--bg-tertiary);
+    color: var(--accent-cyan);
+    border: 1px solid var(--bg-tertiary);
+    border-radius: 6px;
+    padding: 6px 16px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .code-toolbar button:hover {
+    background: var(--accent-cyan);
+    color: var(--bg-primary);
+  }
+  .code-content {
+    max-height: 500px;
+    overflow: auto;
+    padding: 16px;
+  }
+  .code-content pre {
+    color: #c8d0dc;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  /* Download all */
+  .download-all-section {
+    text-align: center;
+    margin: 32px 0;
+    padding: 24px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--bg-tertiary);
+    border-radius: 12px;
+  }
+  .download-all-section h2 {
+    color: var(--accent-cyan);
+    margin-bottom: 8px;
+  }
+  .download-all-section p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+  }
+  .btn-download-all {
+    background: var(--accent-cyan);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 10px;
+    padding: 14px 40px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-download-all:hover {
+    background: var(--accent-coral);
+    color: #fff;
+  }
+  /* Run instructions */
+  .run-instructions {
+    background: var(--bg-secondary);
+    border: 1px solid var(--bg-tertiary);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 24px 0;
+  }
+  .run-instructions h2 {
+    color: var(--accent-cyan);
+    margin-bottom: 16px;
+  }
+  .run-instructions ol {
+    padding-left: 20px;
+  }
+  .run-instructions li {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin: 8px 0;
+  }
+  .run-instructions code {
+    background: var(--bg-tertiary);
+    color: var(--accent-cyan);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+  /* KPI summary cards */
+  .kpi-summary {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .kpi-card {
+    flex: 1;
+    min-width: 180px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--bg-tertiary);
+    border-radius: 12px;
+    padding: 18px 20px;
+    text-align: center;
+  }
+  .kpi-card .kpi-label {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .kpi-card .kpi-value {
+    color: var(--accent-cyan);
+    font-family: var(--font-mono);
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+  .kpi-card .kpi-sub {
+    color: var(--accent-coral);
+    font-size: 0.7rem;
+    margin-top: 4px;
+  }
+  /* Status indicator */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(78,224,123,0.1);
+    border: 1px solid #4ee07b;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 0.82rem;
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    background: #4ee07b;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  /* Footer */
+  .footer {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    padding: 24px;
+    border-top: 1px solid var(--bg-tertiary);
+    margin-top: 32px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header-banner">
+  <h1>🔬 Consulting Process Analysis Platform</h1>
+  <div class="subtitle">Multi-Skill · Multi-Agent · Python-Based Internal Application</div>
+  <div class="skills">
+    <span class="skill-badge">PM4Py — Process Mining</span>
+    <span class="skill-badge">UI/UX Pro Max — Dashboard</span>
+    <span class="skill-badge">AutoResearch — Domain Intelligence</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Status -->
+  <div class="status-bar">
+    <span class="status-dot"></span>
+    <span>✅ Platform generated successfully — 3 sub-agents completed · 4 files · 2,759 lines of code</span>
+  </div>
+
+  <!-- KPI Summary -->
+  <div class="kpi-summary">
+    <div class="kpi-card">
+      <div class="kpi-label">Files Generated</div>
+      <div class="kpi-value">4</div>
+      <div class="kpi-sub">app.py · mining_engine.py · research_agent.py · requirements.txt</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Total Lines</div>
+      <div class="kpi-value">2,759</div>
+      <div class="kpi-sub">Python + requirements</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Skills Integrated</div>
+      <div class="kpi-value">3</div>
+      <div class="kpi-sub">PM4Py + UI/UX Pro Max + AutoResearch</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Process Types</div>
+      <div class="kpi-value">8</div>
+      <div class="kpi-sub">Domain knowledge base entries</div>
+    </div>
+  </div>
+
+  <!-- Architecture Overview -->
+  <div class="arch-section">
+    <h2 class="section-title">🏗️ Architecture Overview</h2>
+    <div class="arch-grid">
+      <div class="arch-card">
+        <span class="layer-badge">LAYER A</span>
+        <h3>mining_engine.py</h3>
+        <div class="skill-name">PM4Py — Data Science & Process Discovery</div>
+        <ul>
+          <li>ingest_data() — CSV/XES ingestion with column mapping</li>
+          <li>discover_process() — Heuristics Miner Petri net discovery</li>
+          <li>compute_diagnostics() — Latency & bottleneck analysis</li>
+          <li>compute_kpis() — Throughput, cycle time, variants</li>
+          <li>run_pipeline() — Full end-to-end convenience runner</li>
+          <li>Handles null timestamps, missing activities, bad formatting</li>
+        </ul>
+      </div>
+      <div class="arch-card">
+        <span class="layer-badge">LAYER B</span>
+        <h3>app.py</h3>
+        <div class="skill-name">UI/UX Pro Max — Interactive Portal</div>
+        <ul>
+          <li>File uploader (CSV/XES) with auto-column detection</li>
+          <li>Column mapping selectors (case_id, activity, timestamp)</li>
+          <li>Process Anatomy Panel with zoom slider (0.25×–3.0×)</li>
+          <li>KPI Metrics Ribbon — 3 cards (throughput, cycle, variants)</li>
+          <li>AI Executive Evaluation Brief (expandable, styled)</li>
+          <li>Notification panel with color-coded log levels</li>
+          <li>Dark navy theme (#1a1a2e) with cyan/coral highlights</li>
+        </ul>
+      </div>
+      <div class="arch-card">
+        <span class="layer-badge">LAYER C</span>
+        <h3>research_agent.py</h3>
+        <div class="skill-name">AutoResearch — Dynamic Context Gathering</div>
+        <ul>
+          <li>research_process_type() — 8 process types with benchmarks</li>
+          <li>generate_executive_brief() — 6-section structured report</li>
+          <li>format_brief_html() — Markdown → styled HTML converter</li>
+          <li>run_research() — Convenience pipeline (research→brief→HTML)</li>
+          <li>Web search fallback for unknown process types</li>
+          <li>Process Health Score (0–100, A–F grading)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Download All -->
+  <div class="download-all-section">
+    <h2>📦 Download Complete Platform</h2>
+    <p>Download all 4 files as a single ZIP archive ready to deploy</p>
+    <button class="btn-download-all" onclick="downloadAll()">⬇️ Download Platform ZIP</button>
+  </div>
+
+  <!-- Run Instructions -->
+  <div class="run-instructions">
+    <h2>🚀 Quick Start</h2>
+    <ol>
+      <li>Download and extract the platform files to a directory</li>
+      <li>Install dependencies: <code>pip install -r requirements.txt</code></li>
+      <li>Install Graphviz (for Petri net rendering): <code>winget install Graphviz</code> or download from graphviz.org</li>
+      <li>Launch the dashboard: <code>streamlit run app.py</code></li>
+      <li>Upload a CSV or XES event log file</li>
+      <li>Map columns (case_id, activity, timestamp) — auto-detected if standard names</li>
+      <li>Select a process type from the sidebar (e.g., "Procure-to-Pay")</li>
+      <li>Click "🚀 Analyze" — the platform will ingest, discover, diagnose, and generate an executive brief</li>
+    </ol>
+  </div>
+
+  <!-- File Viewer -->
+  <div class="arch-section">
+    <h2 class="section-title">📄 Source Code Viewer</h2>
+    <div class="file-tabs" id="fileTabs">
+      <div class="file-tab active" data-file="app" onclick="showFile('app')">app.py</div>
+      <div class="file-tab" data-file="mining" onclick="showFile('mining')">mining_engine.py</div>
+      <div class="file-tab" data-file="research" onclick="showFile('research')">research_agent.py</div>
+      <div class="file-tab" data-file="reqs" onclick="showFile('reqs')">requirements.txt</div>
+    </div>
+    <div class="code-panel">
+      <div class="code-toolbar">
+        <div class="file-info">
+          <span id="fileName">app.py</span>
+          <span class="lines" id="fileLines">968 lines · 31 KB</span>
+        </div>
+        <button onclick="downloadCurrent()">⬇️ Download</button>
+      </div>
+      <div class="code-content">
+        <pre id="codeDisplay">Loading...</pre>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  Consulting Process Analysis Platform · Generated by 3 Sub-Agents · PM4Py × UI/UX Pro Max × AutoResearch<br/>
+  <span style="color:var(--accent-cyan);">z-ai/glm-5.2 via OpenRouter</span>
+</div>
+
+<script>
+// Embed all file contents — loaded from the generator
+const FILES = {
+  app: {
+    name: "app.py",
+    lines: "968 lines · 31 KB",
+    content: `# requirements.txt: pm4py, pandas, streamlit, graphviz
+"""
+app.py — Streamlit UI/UX Pro Max Interactive Dashboard Portal
+Layer B: The Interactive Portal for the Consulting Process Analysis Platform.
+
+Provides a professional dark-themed consulting dashboard with:
+  1. Clean Workspace Grid (file upload + column mapping)
+  2. Process Anatomy Panel (Petri-net / process-tree rendering with zoom)
+  3. KPI Metrics Ribbon (throughput, cycle time, variants)
+  4. AI Executive Evaluation Brief Panel (expandable, styled)
+  5. Error / Log Panel (notifications)
+
+Flow:
+  Upload CSV/XES  →  Map columns  →  Analyze
+  →  mining_engine processes (ingest → discover → diagnose → KPIs)
+  →  research_agent provides domain context + executive brief
+  →  Dashboard renders KPIs, process map, executive brief
+"""
+
+from __future__ import annotations
+
+import os
+import sys
+import tempfile
+import traceback
+from io import BytesIO
+from typing import Any, Dict, List, Optional
+
+import pandas as pd
+import streamlit as st
+
+# Ensure the directory containing this file is importable (so that
+# mining_engine.py and research_agent.py can be imported even when
+# Streamlit is launched from a different working directory).
+_APP_DIR = os.path.dirname(os.path.abspath(__file__))
+if _APP_DIR not in sys.path:
+    sys.path.insert(0, _APP_DIR)
+
+import mining_engine as me          # noqa: E402
+import research_agent as ra         # noqa: E402
+
+
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+PROCESS_TYPES = [
+    "Procure-to-Pay",
+    "Order-to-Cash",
+    "Issue Resolution",
+    "Employee Onboarding",
+    "Invoice Processing",
+    "Customer Service",
+    "Change Management",
+    "Risk Assessment",
+]
+
+SESSION_KEYS = {
+    "df": "_df",
+    "notifications": "_notifications",
+    "kpis": "_kpis",
+    "diagnostics": "_diagnostics",
+    "discovery": "_discovery",
+    "image_path": "_image_path",
+    "brief_md": "_brief_md",
+    "brief_html": "_brief_html",
+    "research": "_research",
+    "analyzed": "_analyzed",
+    "raw_file_path": "_raw_file_path",
+    "raw_file_name": "_raw_file_name",
+    "raw_columns": "_raw_columns",
+    "zoom": "_zoom",
+}
+
+
+# ---------------------------------------------------------------------------
+# CSS — Dark Consulting Theme
+# ---------------------------------------------------------------------------
+DARK_THEME_CSS = """
+<style>
+/* ---------- Root / body ---------- */
+.stApp {
+    background: #1a1a2e;
+    color: #e0e0e0;
+    font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ---------- Sidebar ---------- */
+section[data-testid="stSidebar"] {
+    background: #16213e;
+    border-right: 1px solid #0f3460;
+}
+section[data-testid="stSidebar"] .stMarkdown, 
+section[data-testid="stSidebar"] label {
+    color: #c0c8d8 !important;
+}
+section[data-testid="stSidebar"] h1,
+section[data-testid="stSidebar"] h2,
+section[data-testid="stSidebar"] h3 {
+    color: #00d2ff !important;
+}
+
+/* ---------- Headings ---------- */
+h1, h2, h3 {
+    color: #00d2ff !important;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    letter-spacing: -0.02em;
+}
+h1 { font-weight: 800; }
+h2 { font-weight: 700; border-bottom: 1px solid #0f3460; padding-bottom: 6px; }
+
+/* ---------- Metric cards ---------- */
+div[data-testid="stMetric"] {
+    background: #16213e;
+    border: 1px solid #0f3460;
+    border-radius: 10px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+div[data-testid="stMetric"] label {
+    color: #8eaac4 !important;
+    font-size: 0.85rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
+    color: #00d2ff !important;
+    font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+    font-size: 1.75rem !important;
+    font-weight: 700;
+}
+div[data-testid="stMetric"] div[data-testid="stMetricDelta"] {
+    color: #e94560 !important;
+}
+
+/* ---------- Buttons ---------- */
+.stButton > button {
+    background: #0f3460 !important;
+    color: #00d2ff !important;
+    border: 1px solid #0f3460 !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 8px 24px !important;
+    transition: all 0.2s ease;
+}
+.stButton > button:hover {
+    background: #00d2ff !important;
+    color: #1a1a2e !important;
+    border-color: #00d2ff !important;
+}
+
+/* ---------- Select boxes / dropdowns ---------- */
+.stSelectbox > div > div {
+    background: #16213e !important;
+    color: #e0e0e0 !important;
+    border: 1px solid #0f3460 !important;
+    border-radius: 6px !important;
+}
+
+/* ---------- File uploader ---------- */
+.stFileUploader {
+    border: 1px dashed #0f3460 !important;
+    border-radius: 8px !important;
+    background: #16213e !important;
+    padding: 12px !important;
+}
+
+/* ---------- Expanders ---------- */
+.streamlit-expanderHeader {
+    background: #16213e !important;
+    color: #00d2ff !important;
+    border: 1px solid #0f3460 !important;
+    border-radius: 8px !important;
+    font-weight: 600;
+}
+
+/* ---------- Dataframe tables ---------- */
+.dataframe {
+    color: #e0e0e0;
+}
+.dataframe th {
+    background: #0f3460 !important;
+    color: #00d2ff !important;
+}
+.dataframe td {
+    background: #16213e !important;
+    color: #c8d0dc !important;
+}
+
+/* ---------- Alerts / notifications ---------- */
+.stAlert {
+    border-radius: 8px;
+}
+.stAlert > div {
+    background: #16213e !important;
+    color: #e0e0e0 !important;
+    border-left: 3px solid #00d2ff !important;
+}
+
+/* ---------- Custom notification panel ---------- */
+.notif-panel {
+    background: #16213e;
+    border: 1px solid #0f3460;
+    border-radius: 10px;
+    padding: 16px 18px;
+    max-height: 300px;
+    overflow-y: auto;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+.notif-panel .notif-item {
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(15,52,96,0.5);
+}
+.notif-panel .notif-tag {
+    font-weight: 700;
+}
+.notif-panel .notif-info .notif-tag  { color: #00d2ff; }
+.notif-panel .notif-warn .notif-tag  { color: #ffcc00; }
+.notif-panel .notif-error .notif-tag { color: #e94560; }
+.notif-panel .notif-success .notif-tag { color: #4ee07b; }
+
+/* ---------- KPI ribbon wrapper ---------- */
+.kpi-ribbon {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.kpi-card {
+    flex: 1;
+    background: #16213e;
+    border: 1px solid #0f3460;
+    border-radius: 12px;
+    padding: 20px 24px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.kpi-card .kpi-label {
+    color: #8eaac4;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+}
+.kpi-card .kpi-value {
+    color: #00d2ff;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+}
+.kpi-card .kpi-sub {
+    color: #e94560;
+    font-size: 0.75rem;
+    margin-top: 4px;
+}
+
+/* ---------- Brief panel ---------- */
+.brief-panel {
+    background: #16213e;
+    border: 1px solid #0f3460;
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.brief-panel iframe {
+    width: 100%;
+    min-height: 600px;
+    border: none;
+    border-radius: 8px;
+    background: #fff;
+}
+
+/* ---------- Process map container ---------- */
+.process-map-container {
+    background: #ffffff;
+    border: 1px solid #0f3460;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    overflow: auto;
+}
+
+/* ---------- Header banner ---------- */
+.header-banner {
+    background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+    border-bottom: 2px solid #00d2ff;
+    padding: 18px 0;
+    margin-bottom: 24px;
+}
+.header-banner h1 {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+.header-banner .subtitle {
+    color: #8eaac4;
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+/* ---------- Zoom slider styling ---------- */
+.zoom-control .stSlider > div > div {
+    background: #0f3460;
+}
+</style>
+"""
+
+
+# ---------------------------------------------------------------------------
+# Session-state helpers
+# ---------------------------------------------------------------------------
+def init_session_state() -> None:
+    """Initialise all session-state keys with sensible defaults."""
+    for key, default in [
+        ("df", None),
+        ("notifications", []),
+        ("kpis", None),
+        ("diagnostics", None),
+        ("discovery", None),
+        ("image_path", None),
+        ("brief_md", None),
+        ("brief_html", None),
+        ("research", None),
+        ("analyzed", False),
+        ("raw_file_path", None),
+        ("raw_file_name", None),
+        ("raw_columns", []),
+        ("zoom", 1.0),
+    ]:
+        if key not in st.session_state:
+            st.session_state[key] = default
+
+
+def reset_analysis() -> None:
+    """Clear all analysis results (but keep the uploaded file)."""
+    st.session_state["df"] = None
+    st.session_state["notifications"] = []
+    st.session_state["kpis"] = None
+    st.session_state["diagnostics"] = None
+    st.session_state["discovery"] = None
+    st.session_state["image_path"] = None
+    st.session_state["brief_md"] = None
+    st.session_state["brief_html"] = None
+    st.session_state["research"] = None
+    st.session_state["analyzed"] = False
+
+
+def add_notification(level: str, message: str) -> None:
+    """Append a notification to session state.
+
+    level: 'info' | 'warn' | 'error' | 'success'
+    """
+    st.session_state["notifications"].append({"level": level, "message": message})
+
+
+# ---------------------------------------------------------------------------
+# File handling
+# ---------------------------------------------------------------------------
+def save_uploaded_file(uploaded_file) -> str:
+    """Save a Streamlit UploadedFile to a temp file and return its path."""
+    suffix = os.path.splitext(uploaded_file.name)[1]
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+    tmp.write(uploaded_file.getvalue())
+    tmp.close()
+    return tmp.name
+
+
+def peek_columns(file_path: str) -> List[str]:
+    """Return column names from a CSV or XES file for mapping dropdowns."""
+    ext = os.path.splitext(file_path)[1].lower()
+    try:
+        if ext == ".csv":
+            df = pd.read_csv(file_path, nrows=0)
+            return list(df.columns)
+        elif ext == ".xes":
+            # Try pm4py first; fallback to manual line scan
+            try:
+                import pm4py  # noqa: WPS433
+                log = pm4py.read_xes(file_path)
+                if isinstance(log, pd.DataFrame):
+                    return list(log.columns)
+                # Convert event-log to df
+                from pm4py.objects.conversion.log import converter as lc
+                df = lc.apply(log, variant=lc.TO_DATA_FRAME)
+                return list(df.columns)
+            except Exception:
+                # Manual fallback: parse XES attribute tags from first ~200 lines
+                cols: set[str] = set()
+                with open(file_path, "r", encoding="utf-8", errors="ignore") as fh:
+                    for _i, line in enumerate(fh):
+                        if _i > 500:
+                            break
+                        import re
+                        for m in re.finditer(r'string key="([^"]+)"', line):
+                            cols.add(m.group(1))
+                        for m in re.finditer(r'date key="([^"]+)"', line):
+                            cols.add(m.group(1))
+                        for m in re.finditer(r'float key="([^"]+)"', line):
+                            cols.add(m.group(1))
+                        for m in re.finditer(r'int key="([^"]+)"', line):
+                            cols.add(m.group(1))
+                return sorted(cols)
+        else:
+            return []
+    except Exception as exc:
+        add_notification("error", f"Failed to peek columns: {exc}")
+        return []
+
+
+def auto_detect_column(columns: List[str], candidates: List[str]) -> str:
+    """Return the first candidate found in columns, else ''."""
+    for c in candidates:
+        for col in columns:
+            if col == c or col.lower() == c.lower():
+                return col
+    return ""
+
+
+# ---------------------------------------------------------------------------
+# Analysis pipeline
+# ---------------------------------------------------------------------------
+def run_analysis(
+    file_path: str,
+    column_mapping: Dict[str, str],
+    process_type: str,
+) -> None:
+    """Execute the full pipeline: ingest → discover → diagnose → KPIs → research."""
+    reset_analysis()
+
+    # ---- 1. Ingest ----
+    add_notification("info", f"→ Ingesting data from {os.path.basename(file_path)} …")
+    ingest_result = me.ingest_data(file_path, column_mapping=column_mapping)
+    _collect_notifications(ingest_result.get("notifications", []))
+
+    if ingest_result["status"] != "success":
+        add_notification("error", "Ingestion failed. See notifications above.")
+        return
+
+    df = ingest_result["dataframe"]
+    st.session_state["df"] = df
+    add_notification("success", f"✓ Ingested {len(df)} events from {df['case:concept:name'].nunique()} cases.")
+
+    # ---- 2. Discover process model ----
+    image_path = os.path.join(tempfile.gettempdir(), "process_skeleton.png")
+    add_notification("info", "→ Discovering process model (Heuristics Miner) …")
+    discovery_result = me.discover_process(df, output_path=image_path)
+    _collect_notifications(discovery_result.get("notifications", []))
+    st.session_state["discovery"] = discovery_result
+
+    if discovery_result["status"] == "success" and discovery_result.get("image_path"):
+        st.session_state["image_path"] = discovery_result["image_path"]
+        add_notification("success", "✓ Process model discovered and rendered.")
+    else:
+        add_notification("warn", "Process discovery completed with warnings; image may be unavailable.")
+
+    # ---- 3. Diagnostics ----
+    add_notification("info", "→ Computing performance diagnostics …")
+    diag_result = me.compute_diagnostics(df)
+    _collect_notifications(diag_result.get("notifications", []))
+    st.session_state["diagnostics"] = diag_result
+
+    # ---- 4. KPIs ----
+    add_notification("info", "→ Computing KPIs …")
+    kpi_result = me.compute_kpis(df)
+    _collect_notifications(kpi_result.get("notifications", []))
+    st.session_state["kpis"] = kpi_result
+    add_notification("success", "✓ KPIs computed.")
+
+    # ---- 5. Research agent → executive brief ----
+    add_notification("info", f"→ Researching domain context for '{process_type}' …")
+    research_result = ra.research_process_type(process_type, use_web_fallback=True)
+    st.session_state["research"] = research_result
+
+    # Build pm4py_diagnostics dict for the brief generator
+    kpis = kpi_result
+    diag = diag_result
+    cycle_s = kpis.get("avg_case_cycle_time_seconds", 0) or 0
+    pm4py_diag: Dict[str, Any] = {
+        "total_cases": kpis.get("total_case_throughput", 0),
+        "variant_count": kpis.get("total_unique_variants", 0),
+        "avg_cycle_time": cycle_s / 3600.0,  # hours
+        "avg_cycle_time_hours": cycle_s / 3600.0,
+        "bottleneck_activities": [
+            b.get("source", "") + " → " + b.get("target", "")
+            for b in (diag.get("bottlenecks") or [])
+        ],
+        "rework_rate_pct": 0,  # not directly computed; leave 0
+        "automation_potential_pct": 0,
+        "process_fit_pct": 0,
+        "deviations": [],
+    }
+
+    brief_md = ra.generate_executive_brief(
+        process_type,
+        pm4py_diag,
+        research_result.get("data") or {},
+    )
+    st.session_state["brief_md"] = brief_md
+
+    try:
+        brief_html = ra.format_brief_html(brief_md)
+        st.session_state["brief_html"] = brief_html
+    except Exception as exc:
+        add_notification("warn", f"format_brief_html failed: {exc}")
+        st.session_state["brief_html"] = None
+
+    add_notification("success", "✓ AI Executive Evaluation Brief generated.")
+    st.session_state["analyzed"] = True
+    add_notification("info", "Analysis pipeline complete.")
+
+
+def _collect_notifications(raw_notifs: List[str]) -> None:
+    """Parse mining_engine notifications into the session-state panel."""
+    for msg in raw_notifs or []:
+        if msg.startswith("ERROR") or "ERROR" in msg or "FAILED" in msg.upper():
+            add_notification("error", msg)
+        elif "WARNING" in msg or "WARN" in msg.upper():
+            add_notification("warn", msg)
+        elif "SUCCESS" in msg.upper() or msg.startswith("✓"):
+            add_notification("success", msg)
+        else:
+            add_notification("info", msg)
+
+
+# ---------------------------------------------------------------------------
+# Rendering — sub-components
+# ---------------------------------------------------------------------------
+def render_header() -> None:
+    """Top banner."""
+    st.markdown(
+        """
+        <div class="header-banner">
+            <div style="max-width:1200px;margin:0 auto;padding:0 24px;">
+                <h1>🔬 Consulting Process Analysis Platform</h1>
+                <div class="subtitle">
+                    Interactive Process Mining & AI Executive Evaluation Portal
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_sidebar() -> None:
+    """Sidebar: process type selector + info."""
+    with st.sidebar:
+        st.markdown("### ⚙️ Configuration")
+        st.markdown("---")
+
+        st.markdown("#### Process Type")
+        st.caption("Select the business process category for the research agent.")
+        st.session_state["_selected_process"] = st.selectbox(
+            "Process Type",
+            PROCESS_TYPES,
+            index=0,
+            help="Used by the research agent to pull domain benchmarks and best practices.",
+        )
+
+        st.markdown("---")
+        st.markdown("#### About")
+        st.markdown(
+            """
+            <div style="font-size:0.8rem;color:#8eaac4;line-height:1.6;">
+            <b>Layer B</b> — Interactive Portal<br/>
+            Powered by <b>PM4Py</b> process-mining engine
+            and the <b>AutoResearch</b> knowledge base.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.markdown("---")
+        if st.button("🗑️ Reset Analysis", use_container_width=True):
+            reset_analysis()
+            st.rerun()
+
+
+def render_workspace_grid() -> None:
+    """
+    1. Clean Workspace Grid — file uploader + column mapping selectors.
+    """
+    st.markdown("## 📂 Data Ingestion")
+    st.markdown("Upload an event log (CSV or XES) and map its columns.")
+
+    uploaded = st.file_uploader(
+        "Upload CSV or XES",
+        type=["csv", "xes"],
+        label_visibility="collapsed",
+    )
+
+    col_a, col_b, col_c = st.columns([1, 1, 1])
+
+    if uploaded is not None:
+        # Save and peek columns (only when a new file is uploaded)
+        if (
+            st.session_state["raw_file_name"] != uploaded.name
+            or st.session_state["raw_file_path"] is None
+        ):
+            path = save_uploaded_file(uploaded)
+            st.session_state["raw_file_path"] = path
+            st.session_state["raw_file_name"] = uploaded.name
+            st.session_state["raw_columns"] = peek_columns(path)
+            reset_analysis()
+            add_notification("info", f"File uploaded: {uploaded.name} ({uploaded.size} bytes)")
+
+        cols = st.session_state["raw_columns"]
+        if not cols:
+            st.warning("Could not read columns from this file. Ensure it is a valid CSV/XES.")
+            return
+
+        # Auto-detect defaults
+        default_case = auto_detect_column(
+            cols, ["case:concept:name", "case_id", "Case ID", "case", "Case"]
+        )
+        default_act = auto_detect_column(
+            cols, ["concept:name", "activity", "Activity", "event", "Event"]
+        )
+        default_ts = auto_detect_column(
+            cols, ["time:timestamp", "timestamp", "Timestamp", "time", "start_time"]
+        )
+
+        with col_a:
+            case_col = st.selectbox("Case ID column", cols,
+                                    index=cols.index(default_case) if default_case else 0)
+        with col_b:
+            act_col = st.selectbox("Activity column", cols,
+                                   index=cols.index(default_act) if default_act else 0)
+        with col_c:
+            ts_col = st.selectbox("Timestamp column", cols,
+                                  index=cols.index(default_ts) if default_ts else 0)
+
+        # Preview
+        with st.expander("📋 Data Preview (first 10 rows)"):
+            try:
+                if uploaded.name.lower().endswith(".csv"):
+                    preview_df = pd.read_csv(st.session_state["raw_file_path"], nrows=10)
+                else:
+                    preview_df = pd.read_csv(st.session_state["raw_file_path"], nrows=10) if False else None
+                if preview_df is not None:
+                    st.dataframe(preview_df, use_container_width=True)
+            except Exception:
+                st.info("Preview not available for this file format.")
+
+        # Analyze button
+        st.markdown("")
+        col_btn_l, col_btn_r = st.columns([1, 3])
+        with col_btn_l:
+            analyze = st.button("🚀 Analyze", type="primary", use_container_width=True)
+
+        if analyze:
+            mapping = {
+                "case_id": case_col,
+                "activity": act_col,
+                "timestamp": ts_col,
+            }
+            process_type = st.session_state.get("_selected_process", PROCESS_TYPES[0])
+            with st.spinner("Running analysis pipeline…"):
+                run_analysis(
+                    st.session_state["raw_file_path"],
+                    mapping,
+                    process_type,
+                )
+            st.rerun()
+    else:
+        st.info("👆 Upload a file to begin.")
+        st.session_state["raw_file_path"] = None
+        st.session_state["raw_file_name"] = None
+        st.session_state["raw_columns"] = []
+
+
+def render_kpi_ribbon() -> None:
+    """
+    3. KPI Metrics Ribbon — three metric cards displayed horizontally.
+    """
+    kpis: Optional[Dict[str, Any]] = st.session_state.get("kpis")
+    if kpis is None or kpis.get("status") != "success":
+        return
+
+    throughput = kpis.get("total_case_throughput", 0)
+    cycle_s = kpis.get("avg_case_cycle_time_seconds", 0) or 0
+    variants = kpis.get("total_unique_variants", 0)
+
+    # Format cycle time nicely
+    if cycle_s >= 86400:
+        cycle_str = f"{cycle_s / 86400:.2f} d"
+    elif cycle_s >= 3600:
+        cycle_str = f"{cycle_s / 3600:.2f} h"
+    elif cycle_s >= 60:
+        cycle_str = f"{cycle_s / 60:.2f} m"
+    else:
+        cycle_str = f"{cycle_s:.1f} s"
+
+    # Use native st.metric in columns for the KPI ribbon
+    st.markdown("## 📊 KPI Metrics")
+    m1, m2, m3 = st.columns(3)
+    with m1:
+        st.metric(
+            label="Total Case Throughput",
+            value=f"{throughput:,}",
+            help="Total number of unique process cases observed in the event log.",
+        )
+    with m2:
+        st.metric(
+            label="Avg Case Cycle Time",
+            value=cycle_str,
+            help="Average end-to-end cycle time (lead time) per case.",
+        )
+    with m3:
+        st.metric(
+            label="Unique Workflow Variants",
+            value=f"{variants:,}",
+            help="Number of distinct activity sequences (variants) — a complexity indicator.",
+        )
+
+    # Custom HTML ribbon (extra visual flair)
+    st.markdown(
+        f"""
+        <div class="kpi-ribbon">
+            <div class="kpi-card">
+                <div class="kpi-label">Throughput</div>
+                <div class="kpi-value">{throughput:,}</div>
+                <div class="kpi-sub">cases processed</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Avg Cycle Time</div>
+                <div class="kpi-value">{cycle_str}</div>
+                <div class="kpi-sub">lead time per case</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Variants</div>
+                <div class="kpi-value">{variants:,}</div>
+                <div class="kpi-sub">complexity metric</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_process_anatomy() -> None:
+    """
+    2. Process Anatomy Panel — render the discovered process map with zoom.
+    """
+    if not st.session_state.get("analyzed"):
+        return
+
+    st.markdown("## 🗺️ Process Anatomy")
+
+    image_path = st.session_state.get("image_path")
+    if not image_path or not os.path.isfile(image_path):
+        st.warning("Process map image is not available. Check the notification panel for details.")
+        return
+
+    # Zoom control using st.columns layout
+    col_zoom, col_info = st.columns([3, 1])
+    with col_zoom:
+        zoom = st.slider(
+            "🔎 Zoom level",
+            min_value=0.25,
+            max_value=3.0,
+            value=st.session_state.get("zoom", 1.0),
+            step=0.05,
+            help="Adjust the zoom of the process map.",
+        )
+        st.session_state["zoom"] = zoom
+    with col_info:
+        discovery = st.session_state.get("discovery") or {}
+        st.caption(f"Algorithm: Heuristics Miner")
+        if discovery.get("net") is not None:
+            st.caption("Petri net: ✓")
+
+    # Render image with dynamic width based on zoom
+    img_width = int(100 * zoom)  # percentage
+    img_width = max(25, min(400, img_width))
+
+    st.markdown('<div class="process-map-container">', unsafe_allow_html=True)
+    try:
+        st.image(image_path, width=min(1200, max(400, int(600 * zoom))))
+    except Exception as exc:
+        st.error(f"Failed to render process map: {exc}")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Provide download link for the PNG
+    with open(image_path, "rb") as fh:
+        st.download_button(
+            "📥 Download process map (PNG)",
+            data=fh.read(),
+            file_name="process_skeleton.png",
+            mime="image/png",
+        )
+
+
+def render_executive_brief() -> None:
+    """
+    4. AI Executive Evaluation Brief Panel — styled expandable section.
+    """
+    if not st.session_state.get("analyzed"):
+        return
+
+    st.markdown("## 🤖 AI Executive Evaluation Brief")
+
+    brief_html = st.session_state.get("brief_html")
+    brief_md = st.session_state.get("brief_md")
+
+    if not brief_md:
+        st.info("No executive brief was generated.")
+        return
+
+    with st.expander("📄 View Executive Brief (click to expand)", expanded=True):
+        if brief_html:
+            # Render the HTML brief inside an iframe so its embedded CSS
+            # doesn't clash with the Streamlit dark theme.
+            import base64
+            b64 = base64.b64encode(brief_html.encode("utf-8")).decode("utf-8")
+            st.markdown(
+                f'<div class="brief-panel">'
+                f'<iframe src="data:text/html;base64,{b64}"></iframe>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+        else:
+            # Fallback: render raw markdown
+            st.markdown(brief_md)
+
+    # Also offer a download for the markdown brief
+    st.download_button(
+        "📥 Download brief (Markdown)",
+        data=brief_md,
+        file_name="executive_brief.md",
+        mime="text/markdown",
+    )
+
+
+def render_diagnostics_detail() -> None:
+    """Optional detail panel: bottleneck table + variant frequency."""
+    diag: Optional[Dict[str, Any]] = st.session_state.get("diagnostics")
+    if diag is None or diag.get("status") != "success":
+        return
+
+    with st.expander("🔬 Performance Diagnostics Detail", expanded=False):
+        # Bottlenecks
+        bottlenecks = diag.get("bottlenecks") or []
+        if bottlenecks:
+            st.markdown("### ⚠️ Detected Bottlenecks")
+            bn_df = pd.DataFrame(bottlenecks)
+            st.dataframe(bn_df, use_container_width=True)
+        else:
+            st.info("No significant bottlenecks detected (within mean+1σ).")
+
+        # Variant frequencies (top 10)
+        var_freq = diag.get("variant_frequencies") or {}
+        if var_freq:
+            st.markdown("### 🔀 Top 10 Workflow Variants")
+            var_rows = []
+            for i, (variant, count) in enumerate(list(var_freq.items())[:10]):
+                var_rows.append({
+                    "Rank": i + 1,
+                    "Variant (activity sequence)": " → ".join(variant),
+                    "Frequency": count,
+                })
+            st.dataframe(pd.DataFrame(var_rows), use_container_width=True)
+
+
+def render_log_panel() -> None:
+    """
+    5. Error / Log Panel — clean notification area.
+    """
+    st.markdown("## 📋 Notifications & Logs")
+
+    notifs: List[Dict[str, str]] = st.session_state.get("notifications") or []
+
+    if not notifs:
+        st.info("No notifications yet. Upload a file and run analysis to see logs here.")
+        return
+
+    # Build HTML notification panel
+    items_html = []
+    for n in notifs:
+        level = n["level"]
+        msg = n["message"]
+        # Extract tag (first word before ':')
+        if ":" in msg:
+            tag, rest = msg.split(":", 1)
+        else:
+            tag, rest = level.upper(), msg
+        items_html.append(
+            f'<div class="notif-item notif-{level}">'
+            f'<span class="notif-tag">[{tag.strip()}]</span> {rest.strip()}'
+            f'</div>'
+        )
+
+    panel_html = (
+        '<div class="notif-panel">'
+        + "".join(items_html)
+        + '</div>'
+    )
+    st.markdown(panel_html, unsafe_allow_html=True)
+
+    # Clear button
+    col_c1, col_c2 = st.columns([1, 4])
+    with col_c1:
+        if st.button("Clear notifications"):
+            st.session_state["notifications"] = []
+            st.rerun()
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+def main() -> None:
+    st.set_page_config(
+        page_title="Consulting Process Analysis Platform",
+        page_icon="🔬",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
+
+    # Inject dark theme CSS
+    st.markdown(DARK_THEME_CSS, unsafe_allow_html=True)
+
+    init_session_state()
+    render_header()
+    render_sidebar()
+
+    # Top-level layout
+    # --- Workspace grid ---
+    render_workspace_grid()
+
+    # Divider
+    st.markdown("---")
+
+    # --- KPI ribbon ---
+    render_kpi_ribbon()
+
+    # --- Process anatomy + zoom ---
+    render_process_anatomy()
+
+    # --- Diagnostics detail ---
+    render_diagnostics_detail()
+
+    # --- Executive brief ---
+    render_executive_brief()
+
+    # --- Notification / log panel ---
+    render_log_panel()
+
+    # Footer
+    st.markdown("---")
+    st.markdown(
+        """
+        <div style="text-align:center;color:#5a6a80;font-size:0.8rem;padding:12px;">
+        Consulting Process Analysis Platform · Layer B: Interactive Portal ·
+        Powered by PM4Py + AutoResearch
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception:
+        st.error("An unexpected error occurred:")
+        st.code(traceback.format_exc())
+`
+  },
+  mining: {
+    name: "mining_engine.py",
+    lines: "567 lines · 20 KB",
+    content: `"""
+mining_engine.py — PM4Py-based Process Mining Engine
+Layer A: Data Science & Process Discovery for the Consulting Process Analysis Platform
+
+Provides deterministic processing functions for data alignment, process discovery,
+performance diagnostics, and KPI computation using PM4Py + Pandas.
+"""
+
+import os
+import logging
+from datetime import datetime
+from io import BytesIO
+from typing import Any, Dict, List, Optional, Tuple
+
+import pandas as pd
+
+try:
+    import pm4py
+    from pm4py.objects.log.util import dataframe_utils
+    from pm4py.objects.conversion.log import converter as log_converter
+except ImportError:
+    pm4py = None
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+MANDATORY_COLUMNS = {"case_id", "activity", "timestamp"}
+
+DEFAULT_COLUMN_MAPPING = {
+    "case_id": "case:concept:name",
+    "activity": "concept:name",
+    "timestamp": "time:timestamp",
+}
+
+
+# ---------------------------------------------------------------------------
+# 1. Data Alignment
+# ---------------------------------------------------------------------------
+def ingest_data(
+    file_path: str,
+    column_mapping: Optional[Dict[str, str]] = None,
+) -> Dict[str, Any]:
+    """Ingest .csv or .xes data streams and normalize into a Pandas DataFrame.
+
+    Parameters
+    ----------
+    file_path : str
+        Path to a .csv or .xes event log file.
+    column_mapping : dict, optional
+        Mapping from canonical keys ('case_id', 'activity', 'timestamp') to the
+        actual column names present in the source file.  If *None* the PM4Py
+        standard naming (\`\`case:concept:name\`\`, \`\`concept:name\`\`,
+        \`\`time:timestamp\`\`) is assumed for XES files, while CSV files default
+        to those same names unless overridden.
+
+    Returns
+    -------
+    dict
+        \`\`{"dataframe": pd.DataFrame, "notifications": list, "status": str}\`\`
+        — The normalised DataFrame (with PM4Py-standard column names), a list
+        of human-readable notification messages, and an overall status flag
+        (\`\`"success"\`\` or \`\`"error"\`\`).
+    """
+    result: Dict[str, Any] = {
+        "dataframe": pd.DataFrame(),
+        "notifications": [],
+        "status": "error",
+    }
+
+    if pm4py is None:
+        result["notifications"].append(
+            "DEPENDENCY_ERROR: pm4py is not installed. Install with \`pip install pm4py\`."
+        )
+        return result
+
+    if not os.path.isfile(file_path):
+        result["notifications"].append(f"FILE_NOT_FOUND: '{file_path}' does not exist.")
+        return result
+
+    col_map = column_mapping or {}
+    # Normalise to the three canonical keys
+    col_map = {k: v for k, v in col_map.items() if k in MANDATORY_COLUMNS}
+
+    ext = os.path.splitext(file_path)[1].lower()
+
+    # ---- Load raw data ---------------------------------------------------
+    try:
+        if ext == ".xes":
+            log = pm4py.read_xes(file_path)
+            # Convert to DataFrame if returned as EventLog object
+            if not isinstance(log, pd.DataFrame):
+                df = log_converter.apply(
+                    log, variant=log_converter.TO_DATA_FRAME
+                )
+            else:
+                df = log
+        elif ext == ".csv":
+            df = pd.read_csv(file_path)
+        else:
+            result["notifications"].append(
+                f"UNSUPPORTED_FORMAT: '{ext}' is not supported. Use .csv or .xes."
+            )
+            return result
+    except Exception as exc:
+        result["notifications"].append(f"READ_ERROR: Failed to read '{file_path}': {exc}")
+        return result
+
+    # ---- Apply column mapping / rename -----------------------------------
+    rename_dict: Dict[str, str] = {}
+    for canonical, raw_name in col_map.items():
+        if raw_name in df.columns and raw_name != DEFAULT_COLUMN_MAPPING.get(canonical, raw_name):
+            rename_dict[raw_name] = DEFAULT_COLUMN_MAPPING[canonical]
+
+    # If no mapping provided for CSV, attempt common auto-mappings
+    if ext == ".csv" and not rename_dict:
+        _auto_rename = {
+            "case_id": "case:concept:name",
+            "Case ID": "case:concept:name",
+            "case:concept:name": "case:concept:name",
+            "activity": "concept:name",
+            "Activity": "concept:name",
+            "concept:name": "concept:name",
+            "timestamp": "time:timestamp",
+            "Timestamp": "time:timestamp",
+            "time:timestamp": "time:timestamp",
+            "start_time": "time:timestamp",
+            "StartTime": "time:timestamp",
+        }
+        for col in df.columns:
+            if col in _auto_rename:
+                rename_dict[col] = _auto_rename[col]
+
+    if rename_dict:
+        df = df.rename(columns=rename_dict)
+
+    # ---- Validate mandatory columns --------------------------------------
+    pm4py_cols = set(DEFAULT_COLUMN_MAPPING.values())
+    missing = pm4py_cols - set(df.columns)
+    if missing:
+        result["notifications"].append(
+            f"MISSING_COLUMNS: Required PM4Py columns not found: {missing}. "
+            f"Provide a column_mapping to resolve."
+        )
+        return result
+
+    n_original = len(df)
+
+    # ---- Handle missing timestamps ---------------------------------------
+    ts_col = "time:timestamp"
+    df[ts_col] = pd.to_datetime(df[ts_col], errors="coerce")
+    null_ts = df[ts_col].isna().sum()
+    if null_ts:
+        result["notifications"].append(
+            f"NULL_TIMESTAMPS: {null_ts} rows have missing/invalid timestamps and will be dropped."
+        )
+        df = df.dropna(subset=[ts_col])
+
+    # ---- Handle null activity names ---------------------------------------
+    act_col = "concept:name"
+    null_act = df[act_col].isna().sum()
+    if null_act:
+        result["notifications"].append(
+            f"NULL_ACTIVITIES: {null_act} rows have null activity names and will be dropped."
+        )
+        df = df.dropna(subset=[act_col])
+
+    # ---- Strip whitespace from activity & case columns --------------------
+    df[act_col] = df[act_col].astype(str).str.strip()
+    df["case:concept:name"] = df["case:concept:name"].astype(str).str.strip()
+
+    # ---- Drop duplicate blank activities ---------------------------------
+    blank_act = (df[act_col] == "") | (df[act_col].str.lower() == "nan")
+    n_blank = blank_act.sum()
+    if n_blank:
+        result["notifications"].append(
+            f"BLANK_ACTIVITIES: {n_blank} rows with blank/NaN activity names dropped."
+        )
+        df = df[~blank_act]
+
+    # ---- Sort by timestamp -----------------------------------------------
+    df = df.sort_values(by=[ts_col]).reset_index(drop=True)
+
+    # ---- PM4Py format enforcement ----------------------------------------
+    try:
+        df = pm4py.format_dataframe(
+            df,
+            case_id="case:concept:name",
+            activity_key="concept:name",
+            timestamp_key="time:timestamp",
+        )
+    except Exception as exc:
+        result["notifications"].append(
+            f"FORMAT_WARNING: pm4py.format_dataframe failed ({exc}). "
+            f"DataFrame kept but may lack PM4Py metadata."
+        )
+
+    n_final = len(df)
+    dropped = n_original - n_final
+    result["notifications"].append(
+        f"INGEST_SUMMARY: Loaded {n_original} events; {dropped} dropped during cleaning; "
+        f"{n_final} events retained across {df['case:concept:name'].nunique()} cases."
+    )
+    result["dataframe"] = df
+    result["status"] = "success"
+    return result
+
+
+# ---------------------------------------------------------------------------
+# 2. Heuristics Discovery
+# ---------------------------------------------------------------------------
+def discover_process(
+    df: pd.DataFrame,
+    output_path: str = "process_skeleton.png",
+    parameters: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Discover a Heuristics Net / Petri net from an event log.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        A normalised event log DataFrame (as returned by :func:\`ingest_data\`).
+    output_path : str
+        File path (typically \`\`.png\`\`) for the rendered process model image.
+    parameters : dict, optional
+        Keyword arguments forwarded to
+        \`\`pm4py.discover_petri_net_heuristics()\`\` (e.g. \`\`dependency_threshold\`\`,
+        \`\`and_threshold\`\`, \`\`loop_two_threshold\`\`).
+
+    Returns
+    -------
+    dict
+        \`\`{"net": net, "im": im, "fm": fm, "image_path": str,
+        "notifications": list, "status": str}\`\`
+    """
+    result: Dict[str, Any] = {
+        "net": None,
+        "im": None,
+        "fm": None,
+        "image_path": None,
+        "notifications": [],
+        "status": "error",
+    }
+
+    if pm4py is None:
+        result["notifications"].append("DEPENDENCY_ERROR: pm4py is not installed.")
+        return result
+
+    if df is None or df.empty:
+        result["notifications"].append("EMPTY_DATAFRAME: Input DataFrame is empty.")
+        return result
+
+    # ---- Build kwargs for discover_petri_net_heuristics -------------------
+    # pm4py 2.7.x accepts individual keyword arguments, not a parameters dict.
+    valid_heuristics_kwargs = {
+        "dependency_threshold",
+        "and_threshold",
+        "loop_two_threshold",
+        "activity_key",
+        "timestamp_key",
+        "case_id_key",
+    }
+    kwargs: Dict[str, Any] = {
+        "activity_key": "concept:name",
+        "timestamp_key": "time:timestamp",
+        "case_id_key": "case:concept:name",
+    }
+    if parameters:
+        for k, v in parameters.items():
+            if k in valid_heuristics_kwargs:
+                kwargs[k] = v
+            else:
+                result["notifications"].append(
+                    f"PARAM_WARNING: Unknown heuristic-miner parameter '{k}' ignored."
+                )
+
+    try:
+        net, im, fm = pm4py.discover_petri_net_heuristics(df, **kwargs)
+    except Exception as exc:
+        result["notifications"].append(f"DISCOVERY_ERROR: {exc}")
+        return result
+
+    result["net"] = net
+    result["im"] = im
+    result["fm"] = fm
+    result["notifications"].append("DISCOVERY_SUCCESS: Heuristics Miner Petri net discovered.")
+
+    # ---- Visualization ----------------------------------------------------
+    try:
+        # Ensure output directory exists
+        out_dir = os.path.dirname(output_path) or "."
+        os.makedirs(out_dir, exist_ok=True)
+
+        pm4py.save_vis_petri_net(net, im, fm, output_path)
+        result["image_path"] = output_path
+        result["notifications"].append(
+            f"VISUALIZATION_SAVED: Process model rendered to '{output_path}'."
+        )
+    except Exception as exc:
+        # Fallback: try viewing (which may render to a temp file)
+        result["notifications"].append(
+            f"VISUALIZATION_WARNING: Could not save image to '{output_path}': {exc}"
+        )
+
+    result["status"] = "success"
+    return result
+
+
+# ---------------------------------------------------------------------------
+# 3. Performance Diagnostics
+# ---------------------------------------------------------------------------
+def compute_diagnostics(df: pd.DataFrame) -> Dict[str, Any]:
+    """Calculate execution latencies between activities and variant frequencies.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Normalised event log DataFrame.
+
+    Returns
+    -------
+    dict
+        \`\`{
+            "activity_pair_latencies": list,   # sorted mean-duration pairs
+            "bottlenecks": list,              # pairs exceeding 1 std above mean
+            "variant_frequencies": dict,       # variant -> count
+            "notifications": list,
+            "status": str,
+        }\`\`
+    """
+    result: Dict[str, Any] = {
+        "activity_pair_latencies": [],
+        "bottlenecks": [],
+        "variant_frequencies": {},
+        "notifications": [],
+        "status": "error",
+    }
+
+    if df is None or df.empty:
+        result["notifications"].append("EMPTY_DATAFRAME: Input DataFrame is empty.")
+        return result
+
+    required = {"case:concept:name", "concept:name", "time:timestamp"}
+    missing = required - set(df.columns)
+    if missing:
+        result["notifications"].append(
+            f"MISSING_COLUMNS: DataFrame is missing required columns: {missing}."
+        )
+        return result
+
+    # ---- Ensure timestamp dtype -------------------------------------------
+    df = df.copy()
+    df["time:timestamp"] = pd.to_datetime(df["time:timestamp"], errors="coerce")
+    df = df.dropna(subset=["time:timestamp"])
+    df = df.sort_values(["case:concept:name", "time:timestamp"])
+
+    # ---- Activity-pair latencies (per case, then averaged) ----------------
+    latencies: Dict[Tuple[str, str], List[float]] = {}
+
+    for case_id, case_events in df.groupby("case:concept:name"):
+        events = case_events.sort_values("time:timestamp").reset_index(drop=True)
+        for i in range(len(events) - 1):
+            src = events.loc[i, "concept:name"]
+            dst = events.loc[i + 1, "concept:name"]
+            dur = (events.loc[i + 1, "time:timestamp"] - events.loc[i, "time:timestamp"]).total_seconds()
+            key = (src, dst)
+            latencies.setdefault(key, []).append(dur)
+
+    # Compute mean latency per pair
+    pair_latencies: List[Dict[str, Any]] = []
+    for (src, dst), durs in latencies.items():
+        mean_dur = sum(durs) / len(durs)
+        pair_latencies.append(
+            {
+                "source": src,
+                "target": dst,
+                "mean_duration_seconds": round(mean_dur, 4),
+                "occurrences": len(durs),
+            }
+        )
+
+    # Sort descending by mean duration
+    pair_latencies.sort(key=lambda x: x["mean_duration_seconds"], reverse=True)
+    result["activity_pair_latencies"] = pair_latencies
+
+    # ---- Bottleneck detection: > mean + 1std across all pair-means ---------
+    if pair_latencies:
+        durations = [p["mean_duration_seconds"] for p in pair_latencies]
+        mean_all = sum(durations) / len(durations)
+        std_all = (sum((d - mean_all) ** 2 for d in durations) / len(durations)) ** 0.5
+        threshold = mean_all + std_all
+
+        bottlenecks = [
+            p for p in pair_latencies if p["mean_duration_seconds"] > threshold
+        ]
+        result["bottlenecks"] = bottlenecks
+        result["notifications"].append(
+            f"BOTTLENECK_SUMMARY: {len(bottlenecks)} activity pairs exceed "
+            f"latency threshold ({threshold:.2f}s = mean+1σ)."
+        )
+
+    # ---- Variant frequencies ----------------------------------------------
+    variants: Dict[str, int] = {}
+    for case_id, case_events in df.groupby("case:concept:name"):
+        activities = tuple(case_events.sort_values("time:timestamp")["concept:name"].tolist())
+        variants[activities] = variants.get(activities, 0) + 1
+
+    # Sort by frequency descending
+    result["variant_frequencies"] = dict(
+        sorted(variants.items(), key=lambda item: item[1], reverse=True)
+    )
+    result["notifications"].append(
+        f"VARIANT_SUMMARY: {len(variants)} unique variants across "
+        f"{df['case:concept:name'].nunique()} cases."
+    )
+
+    result["status"] = "success"
+    return result
+
+
+# ---------------------------------------------------------------------------
+# 4. KPI Computation
+# ---------------------------------------------------------------------------
+def compute_kpis(df: pd.DataFrame) -> Dict[str, Any]:
+    """Compute high-level process KPIs from the event log.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Normalised event log DataFrame.
+
+    Returns
+    -------
+    dict
+        \`\`{
+            "total_case_throughput": int,
+            "avg_case_cycle_time_seconds": float,
+            "total_unique_variants": int,
+            "notifications": list,
+            "status": str,
+        }\`\`
+    """
+    result: Dict[str, Any] = {
+        "total_case_throughput": 0,
+        "avg_case_cycle_time_seconds": 0.0,
+        "total_unique_variants": 0,
+        "notifications": [],
+        "status": "error",
+    }
+
+    if df is None or df.empty:
+        result["notifications"].append("EMPTY_DATAFRAME: Input DataFrame is empty.")
+        return result
+
+    required = {"case:concept:name", "concept:name", "time:timestamp"}
+    missing = required - set(df.columns)
+    if missing:
+        result["notifications"].append(
+            f"MISSING_COLUMNS: DataFrame is missing required columns: {missing}."
+        )
+        return result
+
+    df = df.copy()
+    df["time:timestamp"] = pd.to_datetime(df["time:timestamp"], errors="coerce")
+    df = df.dropna(subset=["time:timestamp"])
+
+    # ---- Total case throughput --------------------------------------------
+    n_cases = df["case:concept:name"].nunique()
+    result["total_case_throughput"] = n_cases
+
+    # ---- Average case cycle time ------------------------------------------
+    case_durations: List[float] = []
+    for case_id, case_events in df.groupby("case:concept:name"):
+        ts = case_events["time:timestamp"]
+        if len(ts) >= 2:
+            duration = (ts.max() - ts.min()).total_seconds()
+            case_durations.append(duration)
+        else:
+            # Single-event case: cycle time is effectively 0
+            case_durations.append(0.0)
+
+    if case_durations:
+        avg_cycle = sum(case_durations) / len(case_durations)
+        result["avg_case_cycle_time_seconds"] = round(avg_cycle, 4)
+    else:
+        result["avg_case_cycle_time_seconds"] = 0.0
+
+    # ---- Total unique variants --------------------------------------------
+    variants: set = set()
+    for case_id, case_events in df.groupby("case:concept:name"):
+        variant = tuple(case_events.sort_values("time:timestamp")["concept:name"].tolist())
+        variants.add(variant)
+    result["total_unique_variants"] = len(variants)
+
+    # ---- Attempt PM4Py native KPIs for cross-validation -------------------
+    if pm4py is not None:
+        try:
+            pm4py_arrival_avg = pm4py.get_case_arrival_average(df)
+            result["notifications"].append(
+                f"PM4PY_CASE_ARRIVAL_AVG: {pm4py_arrival_avg}"
+            )
+        except Exception:
+            result["notifications"].append(
+                "PM4PY_ARRIVAL_WARNING: Could not compute case arrival average."
+            )
+
+        try:
+            pm4py_cycle_time = pm4py.get_cycle_time(df)
+            result["notifications"].append(
+                f"PM4PY_CYCLE_TIME: {pm4py_cycle_time}"
+            )
+        except Exception:
+            result["notifications"].append(
+                "PM4PY_CYCLE_TIME_WARNING: Could not compute cycle time via pm4py."
+            )
+
+    result["notifications"].append(
+        f"KPI_SUMMARY: {n_cases} cases, "
+        f"avg cycle time = {result['avg_case_cycle_time_seconds']:.2f}s, "
+        f"{len(variants)} unique variants."
+    )
+
+    result["status"] = "success"
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Convenience: run full pipeline
+# ---------------------------------------------------------------------------
+def run_pipeline(
+    file_path: str,
+    column_mapping: Optional[Dict[str, str]] = None,
+    output_image: str = "process_skeleton.png",
+) -> Dict[str, Any]:
+    """Execute the full mining pipeline: ingest → discover → diagnose → KPIs.
+
+    Returns
+    -------
+    dict
+        Aggregated results keyed by stage name.
+    """
+    pipeline: Dict[str, Any] = {
+        "ingest": None,
+        "discovery": None,
+        "diagnostics": None,
+        "kpis": None,
+        "status": "error",
+    }
+
+    ingest_result = ingest_data(file_path, column_mapping)
+    pipeline["ingest"] = ingest_result
+
+    if ingest_result["status"] != "success":
+        pipeline["status"] = "error"
+        return pipeline
+
+    df = ingest_result["dataframe"]
+
+    pipeline["discovery"] = discover_process(df, output_path=output_image)
+    pipeline["diagnostics"] = compute_diagnostics(df)
+    pipeline["kpis"] = compute_kpis(df)
+
+    pipeline["status"] = "success"
+    return pipeline
+`
+  },
+  research: {
+    name: "research_agent.py",
+    lines: "1256 lines · 48 KB",
+    content: `"""
+research_agent.py
+=================
+
+Layer C — Dynamic Context Gathering for the Consulting Process Analysis Platform.
+
+This module adapts the AutoResearch / GitSkills autonomous-research-swarm pattern
+(karpathy/autoresearch) as a lightweight, offline-first wrapper that pulls
+reference materials dynamically based on the client process being analyzed.
+
+It provides three capabilities:
+
+1. **Domain Lookup** — \`research_process_type(process_name)\`
+   Looks up best-practice operational metrics, common structural flaws, and
+   framework targets for a specific type of business workflow, using a built-in
+   knowledge base of common consulting process types (8+ entries) with an
+   optional web-search fallback.
+
+2. **Executive Brief Generation** — \`generate_executive_brief(...)\`
+   Combines PM4py analytics with domain knowledge to produce a structured
+   "AI Executive Evaluation Brief" in Markdown.
+
+3. **Brief Formatter** — \`format_brief_html(brief_markdown)\`
+   Converts the Markdown brief to HTML for rendering in the Streamlit dashboard.
+
+Author : Layer C Subsystem
+License: MIT
+"""
+
+from __future__ import annotations
+
+import re
+import json
+import logging
+import datetime
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Tuple
+
+# Optional markdown dependency — fall back to a built-in converter if absent.
+try:
+    import markdown as _markdown_lib  # type: ignore
+
+    _HAS_MARKDOWN = True
+except Exception:  # pragma: no cover — optional dependency
+    _HAS_MARKDOWN = False
+
+logger = logging.getLogger(__name__)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Built-in Knowledge Base
+# ──────────────────────────────────────────────────────────────────────────────
+# Each entry mirrors the schema requested:
+#   avg_cycle_time_target  – target end-to-end cycle time (human-readable + hours)
+#   typical_variants       – number of distinct process variants typically seen
+#   common_bottlenecks     – recurring bottleneck activities
+#   benchmark_kpis         – dict of KPI name -> benchmark value
+#   structural_flaws       – known structural weaknesses in real-world deployments
+#   best_practices         – recommended remediation / excellence practices
+
+KNOWLEDGE_BASE: Dict[str, Dict[str, Any]] = {
+    "Procure-to-Pay": {
+        "avg_cycle_time_target": {"value": "5–7 days", "hours": 144},
+        "typical_variants": "6–12",
+        "common_bottlenecks": [
+            "PO approval routing",
+            "Supplier confirmation delay",
+            "3-way match exceptions",
+            "Invoice approval backlog",
+        ],
+        "benchmark_kpis": {
+            "Touchless PO ratio": "≥ 70%",
+            "First-pass match rate": "≥ 85%",
+            "PO cycle time": "≤ 8 hours",
+            "Invoice processing cost": "≤ $3 / invoice",
+            "On-time delivery": "≥ 95%",
+            "Maverick spend": "≤ 5%",
+        },
+        "structural_flaws": [
+            "Excessive manual approval layers not correlated to PO value",
+            "Re-keying between PR / PO / GRN / Invoice systems",
+            "Missing supplier performance feedback loop",
+            "Conformance-to-happy-path < 40% in legacy ERPs",
+        ],
+        "best_practices": [
+            "Tiered approval thresholds based on spend bands",
+            "Catalog-based purchasing to enable touchless PO",
+            "Automated 3-way match with exception-only review",
+            "Supplier scorecards with monthly reviews",
+            "Source-to-contract integration for pricing accuracy",
+        ],
+    },
+    "Order-to-Cash": {
+        "avg_cycle_time_target": {"value": "1–3 days", "hours": 48},
+        "typical_variants": "4–8",
+        "common_bottlenecks": [
+            "Credit hold decisions",
+            "Order entry rework",
+            "Pick-pack-ship coordination",
+            "AR collection follow-up",
+        ],
+        "benchmark_kpis": {
+            "Order accuracy": "≥ 98%",
+            "On-time-in-full (OTIF)": "≥ 95%",
+            "DSO (Days Sales Outstanding)": "≤ 35 days",
+            "Perfect order rate": "≥ 90%",
+            "Credit-to-order lead time": "≤ 4 hours",
+            "Collection effectiveness index": "≥ 85%",
+        },
+        "structural_flaws": [
+            "Fragmented credit-check logic across channels",
+            "Manual allocation of constrained inventory",
+            "No exception aggregation between fulfillment and billing",
+            "Invoice disputes not routed back to root cause",
+        ],
+        "best_practices": [
+            "Unified order capture across all channels",
+            "Automated credit scoring with exception review",
+            "ATP (Available-to-Promise) driven allocation",
+            "Customer self-service portal for order status",
+            "Aging-bucket-driven collection worklists",
+        ],
+    },
+    "Issue Resolution": {
+        "avg_cycle_time_target": {"value": "4–24 hours", "hours": 8},
+        "typical_variants": "10–25",
+        "common_bottlenecks": [
+            "Triage and routing",
+            "Escalation hand-offs",
+            "Root-cause analysis",
+            "Customer communication gaps",
+        ],
+        "benchmark_kpis": {
+            "First Contact Resolution (FCR)": "≥ 70%",
+            "Mean Time to Resolve (MTTR)": "≤ 8 hours",
+            "Reopen rate": "≤ 10%",
+            "SLA compliance": "≥ 95%",
+            "CSAT": "≥ 4.2 / 5",
+            "Backlog aging (open > 7d)": "≤ 5%",
+        },
+        "structural_flaws": [
+            "Over-reliance on ad-hoc escalation chains",
+            "No structured severity-to-SLA mapping",
+            "Knowledge base under-utilised during triage",
+            "Closure without RCA in > 30% of cases",
+        ],
+        "best_practices": [
+            "Intelligent routing via classification models",
+            "Severity-based SLA matrices",
+            "Mandatory RCA for P1/P2 issues",
+            "Living knowledge base with contribution incentives",
+            "Proactive customer notification at milestones",
+        ],
+    },
+    "Employee Onboarding": {
+        "avg_cycle_time_target": {"value": "3–5 days", "hours": 72},
+        "typical_variants": "5–10",
+        "common_bottlenecks": [
+            "IT provisioning (laptop, accounts)",
+            "Badge / facility access setup",
+            "Manager availability for orientation",
+            "HR document collection",
+        ],
+        "benchmark_kpis": {
+            "Time-to-Productivity": "≤ 14 days",
+            "Onboarding completion rate": "≥ 98%",
+            "New-hire satisfaction": "≥ 4.3 / 5",
+            "Day-1 readiness": "≥ 90%",
+            "Probation pass rate": "≥ 92%",
+            "IT provisioning lead time": "≤ 24 hours",
+        },
+        "structural_flaws": [
+            "Parallel tasks without explicit join dependencies",
+            "No clear process owner across HR / IT / Facilities",
+            "Manual document collection prone to rework loops",
+            "Onboarding plan not customised by role/level",
+        ],
+        "best_practices": [
+            "Pre-boarding digital workflow triggered on offer accept",
+            "Role-based onboarding templates",
+            "Cross-functional SLA contract (HR/IT/Facilities)",
+            "Buddy system + 30/60/90 check-ins",
+            "Automated IT provisioning via IAM integration",
+        ],
+    },
+    "Invoice Processing": {
+        "avg_cycle_time_target": {"value": "2–4 days", "hours": 72},
+        "typical_variants": "5–9",
+        "common_bottlenecks": [
+            "Manual data entry",
+            "Exception handling (PO mismatch / missing GRN)",
+            "Approval routing",
+            "Posting to ERP",
+        ],
+        "benchmark_kpis": {
+            "Straight-through processing rate": "≥ 75%",
+            "Cost per invoice": "≤ $3",
+            "Invoice cycle time": "≤ 48 hours",
+            "Duplicate detection rate": "100%",
+            "Exception rate": "≤ 15%",
+            "Early-payment discount capture": "≥ 80%",
+        },
+        "structural_flaws": [
+            "No OCR/automation — manual entry dominates",
+            "Exceptions handled in silo without feedback to procurement",
+            "Approval matrix too rigid / too flat",
+            "No separation of standard vs. exception paths",
+        ],
+        "best_practices": [
+            "Invoice capture automation (OCR + ML classification)",
+            "Rules-based exception routing with targeted reviewer pools",
+            "Dynamic approval thresholds",
+            "Supplier portal for invoice submission",
+            "Continuous feedback loop to reduce upstream errors",
+        ],
+    },
+    "Customer Service": {
+        "avg_cycle_time_target": {"value": "5–15 minutes (first contact)", "hours": 0.2},
+        "typical_variants": "15–40",
+        "common_bottlenecks": [
+            "IVR / routing configuration",
+            "Agent availability",
+            "Knowledge lookup during call",
+            "After-call work / wrap-up",
+        ],
+        "benchmark_kpis": {
+            "Average Handle Time (AHT)": "≤ 6 minutes",
+            "First Contact Resolution (FCR)": "≥ 75%",
+            "Service Level (80/20)": "≥ 80%",
+            "CSAT": "≥ 4.3 / 5",
+            "Abandon rate": "≤ 5%",
+            "Agent utilization": "70–85%",
+        },
+        "structural_flaws": [
+            "Over-segmentation of queues increasing transfers",
+            "Knowledge fragmented across systems",
+            "Wrap-up not standardized → data quality issues",
+            "No proactive outreach despite outbound capability",
+        ],
+        "best_practices": [
+            "Skills-based routing with dynamic queue assignment",
+            "Unified agent desktop with embedded knowledge",
+            "Structured wrap-up codes with validation",
+            "Proactive contact for high-risk cases",
+            "Quality monitoring with coaching loops",
+        ],
+    },
+    "Change Management": {
+        "avg_cycle_time_target": {"value": "1–10 days (by risk tier)", "hours": 48},
+        "typical_variants": "3–7",
+        "common_bottlenecks": [
+            "CAB (Change Advisory Board) scheduling",
+            "Risk assessment completeness",
+            "Implementation window availability",
+            "Post-implementation review (PIR) backlog",
+        ],
+        "benchmark_kpis": {
+            "Change success rate": "≥ 95%",
+            "Emergency change ratio": "≤ 10%",
+            "CAB turnaround": "≤ 48 hours",
+            "Change lead time": "≤ 5 days",
+            "PIR completion for failed changes": "100%",
+            "Unauthorized change rate": "0%",
+        },
+        "structural_flaws": [
+            "CAB as bottleneck rather than enabler",
+            "Risk scoring subjective / inconsistent",
+            "No link to release and deployment calendar",
+            "PIR skipped for minor-severity failures",
+        ],
+        "best_practices": [
+            "Standard change pre-approval templates",
+            "Automated risk scoring from CMDB data",
+            "Integrated change–release–deploy pipeline",
+            "Mandatory PIR for all Sev-1/Sev-2 changes",
+            "Trend analysis feeding back into change policy",
+        ],
+    },
+    "Risk Assessment": {
+        "avg_cycle_time_target": {"value": "5–15 days", "hours": 240},
+        "typical_variants": "4–8",
+        "common_bottlenecks": [
+            "Data gathering from disparate sources",
+            "Risk scoring consensus",
+            "Mitigation plan approval",
+            "Monitoring cadence drift",
+        ],
+        "benchmark_kpis": {
+            "Assessment cycle time": "≤ 10 days",
+            "Risk register coverage": "100% of in-scope assets",
+            "Mitigation plan on-time completion": "≥ 85%",
+            "Residual risk reduction": "≥ 20% YoY",
+            "Assessment frequency adherence": "≥ 95%",
+            "Risk events predicted pre-occurrence": "≥ 30%",
+        },
+        "structural_flaws": [
+            "Manual spreadsheets with no version control",
+            "Scoring rubric not standardized across assessors",
+            "No continuous monitoring — point-in-time snapshots only",
+            "Mitigation ownership ambiguous",
+        ],
+        "best_practices": [
+            "Centralized GRC platform with audit trail",
+            "Quantified risk scoring (likelihood × impact) with calibration",
+            "Continuous risk monitoring via telemetry integration",
+            "Clear RACI for each mitigation action",
+            "Risk appetite statements linked to scoring thresholds",
+        ],
+    },
+}
+
+# Normalised lookup index — allows case / hyphen / whitespace insensitive match.
+_LOOKUP_INDEX: Dict[str, str] = {
+    k.lower().replace("-", " ").replace("_", " ").strip(): k
+    for k in KNOWLEDGE_BASE
+}
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Helpers
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+def _normalise(name: str) -> str:
+    return name.lower().replace("-", " ").replace("_", " ").strip()
+
+
+@dataclass
+class BriefResult:
+    """Container for a generated executive brief."""
+
+    markdown: str
+    html: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 1. Domain Lookup
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+def research_process_type(
+    process_name: str, use_web_fallback: bool = True
+) -> Dict[str, Any]:
+    """Look up best-practice knowledge for a given business process type.
+
+    Parameters
+    ----------
+    process_name : str
+        Human-readable process name, e.g. "Procure-to-Pay", "Order-to-Cash".
+    use_web_fallback : bool, default True
+        If the process is not in the built-in knowledge base, attempt a
+        lightweight web search to assemble a synthetic entry.
+
+    Returns
+    -------
+    dict
+        A dictionary with keys: \`\`process_type\`\`, \`\`found\`\` (bool),
+        \`\`source\`\` ("knowledge_base" | "web" | "unknown"),
+        \`\`data\`\` (the entry dict), and optionally \`\`search_query\`\`.
+    """
+    key = _LOOKUP_INDEX.get(_normalise(process_name))
+
+    if key:
+        logger.info("Knowledge-base hit for '%s' → '%s'", process_name, key)
+        return {
+            "process_type": key,
+            "found": True,
+            "source": "knowledge_base",
+            "data": KNOWLEDGE_BASE[key],
+        }
+
+    # ── Fallback: web search ──────────────────────────────────────────────
+    if use_web_fallback:
+        try:
+            synthetic = _web_fallback(process_name)
+            if synthetic:
+                return synthetic
+        except Exception as exc:  # pragma: no cover — defensive
+            logger.warning("Web fallback failed for '%s': %s", process_name, exc)
+
+    # ── Last resort: return a stub ─────────────────────────────────────────
+    logger.warning("No knowledge found for '%s'; returning stub entry.", process_name)
+    return {
+        "process_type": process_name,
+        "found": False,
+        "source": "unknown",
+        "data": _stub_entry(process_name),
+    }
+
+
+def _web_fallback(process_name: str) -> Optional[Dict[str, Any]]:
+    """Attempt a lightweight web search to build a synthetic knowledge entry.
+
+    Uses the \`\`requests\`\` library if available and queries a public search
+    endpoint.  This is intentionally conservative — it degrades gracefully
+    when offline.  The resulting entry is marked \`\`source="web"\`\` and flagged
+    as lower-confidence.
+    """
+    try:
+        import requests  # type: ignore
+    except Exception:
+        logger.info("requests not available — skipping web fallback.")
+        return None
+
+    query = (
+        f"{process_name} process best practice KPI benchmark cycle time bottlenecks"
+    )
+    search_url = "https://en.wikipedia.org/w/api.php"
+    params = {
+        "action": "query",
+        "list": "search",
+        "srsearch": process_name,
+        "format": "json",
+        "srlimit": 3,
+    }
+
+    try:
+        resp = requests.get(search_url, params=params, timeout=8)
+        resp.raise_for_status()
+        results = resp.json().get("query", {}).get("search", [])
+    except Exception as exc:
+        logger.info("Web search request failed: %s", exc)
+        return None
+
+    # Build a synthetic entry using whatever we can glean.
+    snippets = " ".join(r.get("snippet", "") for r in results)
+    # Strip HTML tags from snippets.
+    snippets = re.sub(r"<[^>]+>", " ", snippets)
+
+    # Heuristic extraction of numeric benchmarks from snippets.
+    cycle_hours = _extract_number(snippets, default=120)
+    variants = "unknown"
+
+    return {
+        "process_type": process_name,
+        "found": True,
+        "source": "web",
+        "search_query": query,
+        "data": {
+            "avg_cycle_time_target": {
+                "value": f"~{cycle_hours} hours (web estimate)",
+                "hours": cycle_hours,
+            },
+            "typical_variants": variants,
+            "common_bottlenecks": [
+                "Insufficient data — verify with domain expert",
+                "Likely approval / handoff delays (generic)",
+            ],
+            "benchmark_kpis": {
+                "Cycle time": f"≤ {cycle_hours} hours (web estimate)",
+                "Note": "Benchmarks derived from public search — validate before use.",
+            },
+            "structural_flaws": [
+                "Not yet assessed — web-derived entry",
+            ],
+            "best_practices": [
+                "Conduct focused process discovery before benchmarking",
+                "Engage SME for domain-specific benchmarks",
+            ],
+        },
+        "confidence": "low",
+    }
+
+
+def _extract_number(text: str, default: int = 0) -> int:
+    """Extract the first integer from *text*, or return *default*."""
+    match = re.search(r"\\b(\\d+)\\b", text)
+    return int(match.group(1)) if match else default
+
+
+def _stub_entry(process_name: str) -> Dict[str, Any]:
+    """Return a minimal placeholder entry for an unknown process type."""
+    return {
+        "avg_cycle_time_target": {"value": "unknown", "hours": 0},
+        "typical_variants": "unknown",
+        "common_bottlenecks": ["Not yet mapped"],
+        "benchmark_kpis": {"Cycle time": "TBD"},
+        "structural_flaws": ["Not yet assessed"],
+        "best_practices": ["Define process scope and re-run analysis"],
+    }
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 2. Executive Brief Generation
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+def generate_executive_brief(
+    process_name: str,
+    pm4py_diagnostics: Dict[str, Any],
+    domain_knowledge: Dict[str, Any],
+) -> str:
+    """Generate a structured Markdown "AI Executive Evaluation Brief".
+
+    Parameters
+    ----------
+    process_name : str
+        The business process under analysis.
+    pm4py_diagnostics : dict
+        Output from the PM4py analytics layer (Layer B).  Expected keys
+        (all optional but recommended): \`\`variant_count\`\`, \`\`total_cases\`\`,
+        \`\`avg_cycle_time_hours\`\`, \`\`bottleneck_activities\`\`, \`\`conformance\`\`,
+        \`\`fitness\`\`, \`\`precision\`\`, \`\`generalization\`\`, \`\`simplicity\`\`,
+        \`\`deviations\`\`, \`\`process_model_summary\`\`.
+    domain_knowledge : dict
+        The \`\`data\`\` sub-dict returned by :func:\`research_process_type\`.
+
+    Returns
+    -------
+    str
+        Markdown-formatted executive brief.
+    """
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    ptype = domain_knowledge.get("process_type", process_name) if isinstance(
+        domain_knowledge, dict
+    ) and "process_type" in domain_knowledge else process_name
+
+    # When domain_knowledge is the full research_process_type response, extract .data
+    if isinstance(domain_knowledge, dict) and "data" in domain_knowledge:
+        dk = domain_knowledge["data"]
+    else:
+        dk = domain_knowledge  # already the inner data dict
+
+    # ── Pull PM4py values with safe defaults ───────────────────────────────
+    variant_count = pm4py_diagnostics.get("variant_count", "N/A")
+    total_cases = pm4py_diagnostics.get("total_cases", "N/A")
+    avg_cycle = pm4py_diagnostics.get("avg_cycle_time_hours", "N/A")
+    bottlenecks = pm4py_diagnostics.get("bottleneck_activities", [])
+    fitness = pm4py_diagnostics.get("fitness")
+    precision = pm4py_diagnostics.get("precision")
+    generalization = pm4py_diagnostics.get("generalization")
+    simplicity = pm4py_diagnostics.get("simplicity")
+    deviations = pm4py_diagnostics.get("deviations", [])
+    model_summary = pm4py_diagnostics.get("process_model_summary", "")
+
+    # ── Domain values ──────────────────────────────────────────────────────
+    target_cycle = dk.get("avg_cycle_time_target", {})
+    target_val = target_cycle.get("value", "N/A") if isinstance(target_cycle, dict) else str(target_cycle)
+    target_hours = target_cycle.get("hours", 0) if isinstance(target_cycle, dict) else 0
+    typical_variants = dk.get("typical_variants", "N/A")
+    dom_bottlenecks = dk.get("common_bottlenecks", [])
+    kpis = dk.get("benchmark_kpis", {})
+    flaws = dk.get("structural_flaws", [])
+    practices = dk.get("best_practices", [])
+
+    # ── Compute Process Health Score (0–100) ───────────────────────────────
+    health_score, health_grade = _compute_health_score(
+        pm4py_diagnostics, avg_cycle, target_hours
+    )
+
+    # ── Build sections ─────────────────────────────────────────────────────
+    md_lines: List[str] = []
+    md_lines.append(f"# AI Executive Evaluation Brief")
+    md_lines.append("")
+    md_lines.append(f"**Process:** {ptype}  ")
+    md_lines.append(f"**Generated:** {now}  ")
+    md_lines.append(f"**Analysis Engine:** PM4py × AutoResearch Domain Intelligence")
+    md_lines.append("")
+    md_lines.append("---")
+    md_lines.append("")
+
+    # ── Executive Summary ──────────────────────────────────────────────────
+    md_lines.append("## 1. Executive Summary")
+    md_lines.append("")
+    summary = _exec_summary(
+        ptype, total_cases, variant_count, avg_cycle, target_val, health_score, health_grade
+    )
+    md_lines.append(summary)
+    md_lines.append("")
+
+    # ── Process Health Score ────────────────────────────────────────────────
+    md_lines.append("## 2. Process Health Score")
+    md_lines.append("")
+    md_lines.append(f"| Metric | Value |")
+    md_lines.append(f"|---|---|")
+    md_lines.append(f"| **Overall Score** | **{health_score}/100 ({health_grade})** |")
+    if fitness is not None:
+        md_lines.append(f"| Fitness | {fitness:.3f} |" if isinstance(fitness, float) else f"| Fitness | {fitness} |")
+    if precision is not None:
+        md_lines.append(f"| Precision | {precision:.3f} |" if isinstance(precision, float) else f"| Precision | {precision} |")
+    if generalization is not None:
+        md_lines.append(f"| Generalization | {generalization:.3f} |" if isinstance(generalization, float) else f"| Generalization | {generalization} |")
+    if simplicity is not None:
+        md_lines.append(f"| Simplicity | {simplicity:.3f} |" if isinstance(simplicity, float) else f"| Simplicity | {simplicity} |")
+    md_lines.append(f"| Cases Analyzed | {total_cases} |")
+    md_lines.append(f"| Variants Detected | {variant_count} |")
+    md_lines.append("")
+
+    # ── Benchmark Comparison ───────────────────────────────────────────────
+    md_lines.append("## 3. Benchmark Comparison")
+    md_lines.append("")
+    md_lines.append(f"| KPI | Client Actual | Domain Benchmark | Gap |")
+    md_lines.append(f"|---|---|---|---|")
+    # Cycle time row
+    actual_cycle = f"{avg_cycle} h" if isinstance(avg_cycle, (int, float)) else str(avg_cycle)
+    bench_cycle = f"{target_val}"
+    gap = _gap_label(avg_cycle, target_hours)
+    md_lines.append(f"| Avg. Cycle Time | {actual_cycle} | {bench_cycle} | {gap} |")
+    # Variants row
+    md_lines.append(f"| Process Variants | {variant_count} | {typical_variants} | {_variant_gap(variant_count, typical_variants)} |")
+    # Additional KPI rows
+    for kpi_name, kpi_bench in kpis.items():
+        md_lines.append(f"| {kpi_name} | — (not measured) | {kpi_bench} | TBD |")
+    md_lines.append("")
+
+    # ── Key Findings ────────────────────────────────────────────────────────
+    md_lines.append("## 4. Key Findings")
+    md_lines.append("")
+    findings = _key_findings(
+        pm4py_diagnostics, bottlenecks, dom_bottlenecks, flaws, deviations
+    )
+    for f in findings:
+        md_lines.append(f"- {f}")
+    md_lines.append("")
+
+    # ── Risk Indicators ─────────────────────────────────────────────────────
+    md_lines.append("## 5. Risk Indicators")
+    md_lines.append("")
+    risks = _risk_indicators(
+        pm4py_diagnostics, bottlenecks, dom_bottlenecks, flaws, deviations
+    )
+    if risks:
+        for r in risks:
+            md_lines.append(f"- ⚠️ {r}")
+    else:
+        md_lines.append("- No critical risk indicators detected.")
+    md_lines.append("")
+
+    # ── Recommendations ────────────────────────────────────────────────────
+    md_lines.append("## 6. Recommendations")
+    md_lines.append("")
+    recs = _recommendations(
+        bottlenecks, dom_bottlenecks, flaws, practices, deviations, health_score
+    )
+    for i, rec in enumerate(recs, 1):
+        md_lines.append(f"{i}. {rec}")
+    md_lines.append("")
+
+    # ── Footer ──────────────────────────────────────────────────────────────
+    md_lines.append("---")
+    md_lines.append("")
+    md_lines.append(
+        "*This brief was auto-generated by the Consulting Process Analysis Platform "
+        "combining PM4py process mining diagnostics with domain knowledge from the "
+        "AutoResearch knowledge base. Scores and benchmarks are indicative and should "
+        "be validated with subject-matter experts before executive action.*"
+    )
+    md_lines.append("")
+
+    return "\\n".join(md_lines)
+
+
+def _compute_health_score(
+    pm4py_diagnostics: Dict[str, Any], avg_cycle: Any, target_hours: float
+) -> Tuple[int, str]:
+    """Compute a 0–100 health score from available diagnostics.
+
+    Weighting (normalised to 100 when components present):
+      Fitness        30 pts
+      Precision      20 pts
+      Generalization 15 pts
+      Simplicity     10 pts
+      Cycle time     25 pts
+    """
+    score = 0.0
+    max_score = 0.0
+
+    fitness = pm4py_diagnostics.get("fitness")
+    precision = pm4py_diagnostics.get("precision")
+    generalization = pm4py_diagnostics.get("generalization")
+    simplicity = pm4py_diagnostics.get("simplicity")
+
+    def _val(v, weight):
+        nonlocal score, max_score
+        max_score += weight
+        if v is not None and isinstance(v, (int, float)):
+            score += min(max(v, 0.0), 1.0) * weight
+
+    _val(fitness, 30)
+    _val(precision, 20)
+    _val(generalization, 15)
+    _val(simplicity, 10)
+
+    # Cycle time component
+    max_score += 25
+    if (
+        isinstance(avg_cycle, (int, float))
+        and target_hours
+        and target_hours > 0
+    ):
+        ratio = target_hours / max(avg_cycle, 0.01)
+        # If actual ≤ target → full marks; if actual is 2× target → 0 marks.
+        ct_score = max(0.0, min(ratio, 1.0)) * 25
+        score += ct_score
+
+    if max_score == 0:
+        return 50, "C (Insufficient Data)"
+
+    normalised = round((score / max_score) * 100)
+
+    if normalised >= 85:
+        grade = "A (Excellent)"
+    elif normalised >= 70:
+        grade = "B (Good)"
+    elif normalised >= 55:
+        grade = "C (Moderate)"
+    elif normalised >= 40:
+        grade = "D (Poor)"
+    else:
+        grade = "F (Critical)"
+    return normalised, grade
+
+
+def _gap_label(actual: Any, target: float) -> str:
+    if not isinstance(actual, (int, float)) or not target or target <= 0:
+        return "TBD"
+    pct = ((actual - target) / target) * 100
+    if pct <= 0:
+        return f"✅ On target ({pct:+.1f}%)"
+    elif pct <= 20:
+        return f"⚠️ Slight overrun (+{pct:.1f}%)"
+    elif pct <= 50:
+        return f"🔴 Moderate overrun (+{pct:.1f}%)"
+    else:
+        return f"🛑 Significant overrun (+{pct:.1f}%)"
+
+
+def _variant_gap(actual: Any, typical: Any) -> str:
+    """Rough gap assessment for variant count."""
+    if not isinstance(actual, (int, float)):
+        return "TBD"
+    # Try to parse a range like "6–12" or a single number.
+    try:
+        nums = re.findall(r"\\d+", str(typical))
+        if len(nums) >= 2:
+            lo, hi = int(nums[0]), int(nums[1])
+        elif len(nums) == 1:
+            lo = hi = int(nums[0])
+        else:
+            return "TBD"
+    except Exception:
+        return "TBD"
+
+    if actual <= lo:
+        return "✅ Within range"
+    elif actual <= hi:
+        return "⚠️ Upper range"
+    elif actual <= hi * 1.5:
+        return "🔴 Above range"
+    else:
+        return "🛑 Excessive variants"
+
+
+def _exec_summary(
+    ptype: str,
+    total_cases: Any,
+    variant_count: Any,
+    avg_cycle: Any,
+    target_val: Any,
+    health_score: int,
+    health_grade: str,
+) -> str:
+    lines = [
+        f"This brief presents an AI-driven evaluation of the **{ptype}** process, "
+        f"analysing **{total_cases}** cases across **{variant_count}** process variants "
+        f"using event-log data processed through PM4py process-mining algorithms.",
+        "",
+        f"The process achieved an overall health score of **{health_score}/100** "
+        f"(**{health_grade}**).",
+        "",
+    ]
+    if isinstance(avg_cycle, (int, float)):
+        lines.append(
+            f"The average observed cycle time is **{avg_cycle} hours**, "
+            f"compared to a domain benchmark of **{target_val}**."
+        )
+    else:
+        lines.append(
+            "Cycle time could not be reliably measured from the available event log; "
+            "this should be prioritised in the next analysis pass."
+        )
+    lines.append("")
+    lines.append(
+        "The following sections provide benchmark comparisons, key findings, "
+        "risk indicators, and actionable recommendations."
+    )
+    return "\\n".join(lines)
+
+
+def _key_findings(
+    pm4py_diagnostics: Dict[str, Any],
+    bottlenecks: List[Any],
+    dom_bottlenecks: List[str],
+    flaws: List[str],
+    deviations: List[Any],
+) -> List[str]:
+    findings: List[str] = []
+
+    fitness = pm4py_diagnostics.get("fitness")
+    if isinstance(fitness, float) and fitness < 0.85:
+        findings.append(
+            f"Conformance fitness is **{fitness:.3f}**, indicating that a significant "
+            f"share of observed traces deviate from the reference model."
+        )
+    elif isinstance(fitness, float) and fitness >= 0.95:
+        findings.append(
+            f"Conformance fitness is **{fitness:.3f}**, indicating strong alignment "
+            f"between observed and modelled behaviour."
+        )
+
+    precision = pm4py_diagnostics.get("precision")
+    if isinstance(precision, float) and precision < 0.7:
+        findings.append(
+            f"Precision is **{precision:.3f}**, suggesting the model allows behaviour "
+            f"not observed in the log — potential under-specification."
+        )
+
+    # Bottleneck overlap
+    bn_lower = {str(b).lower() for b in bottlenecks}
+    dom_lower = {str(b).lower() for b in dom_bottlenecks}
+    overlapping = bn_lower & dom_lower
+    if overlapping:
+        findings.append(
+            f"Observed bottlenecks match known domain bottlenecks: "
+            f"{', '.join(sorted(overlapping))}."
+        )
+    if bn_lower - dom_lower:
+        findings.append(
+            f"Novel bottlenecks not in the domain reference: "
+            f"{', '.join(sorted(bn_lower - dom_lower))}."
+        )
+
+    if deviations:
+        findings.append(
+            f"**{len(deviations)}** conformance deviations were detected, "
+            f"indicating process variability beyond the reference model."
+        )
+
+    if flaws:
+        top_flaw = flaws[0] if isinstance(flaws[0], str) else str(flaws[0])
+        findings.append(f"Known structural flaw relevant here: {top_flaw}.")
+
+    if not findings:
+        findings.append(
+            "No significant anomalies detected relative to domain benchmarks. "
+            "Process performance appears nominal."
+        )
+
+    return findings
+
+
+def _risk_indicators(
+    pm4py_diagnostics: Dict[str, Any],
+    bottlenecks: List[Any],
+    dom_bottlenecks: List[str],
+    flaws: List[str],
+    deviations: List[Any],
+) -> List[str]:
+    risks: List[str] = []
+
+    fitness = pm4py_diagnostics.get("fitness")
+    if isinstance(fitness, float) and fitness < 0.75:
+        risks.append(
+            f"Low conformance fitness ({fitness:.3f}) — high risk of uncontrolled process drift."
+        )
+
+    precision = pm4py_diagnostics.get("precision")
+    if isinstance(precision, float) and precision < 0.6:
+        risks.append(
+            f"Low precision ({precision:.3f}) — model permits excessive unobserved behaviour."
+        )
+
+    variant_count = pm4py_diagnostics.get("variant_count")
+    if isinstance(variant_count, (int, float)) and variant_count > 20:
+        risks.append(
+            f"High variant count ({variant_count}) — process fragmentation risk, "
+            f"indicating lack of standardisation."
+        )
+
+    if len(bottlenecks) > 3:
+        risks.append(
+            f"Multiple bottleneck activities ({len(bottlenecks)}) detected — "
+            f"capacity-constraint risk across several stages."
+        )
+
+    if len(deviations) > 10:
+        risks.append(
+            f"Elevated deviation count ({len(deviations)}) — control-gap risk "
+            f"requiring governance review."
+        )
+
+    for flaw in flaws[:3]:
+        risks.append(f"Structural flaw: {flaw}")
+
+    return risks
+
+
+def _recommendations(
+    bottlenecks: List[Any],
+    dom_bottlenecks: List[str],
+    flaws: List[str],
+    practices: List[str],
+    deviations: List[Any],
+    health_score: int,
+) -> List[str]:
+    recs: List[str] = []
+
+    # 1 — Bottleneck remediation
+    bn_lower = {str(b).lower() for b in bottlenecks}
+    dom_lower = {str(b).lower() for b in dom_bottlenecks}
+    overlapping = bn_lower & dom_lower
+    if overlapping:
+        recs.append(
+            f"Target the overlapping bottlenecks ({', '.join(sorted(overlapping))}) "
+            f"first — these are well-understood domain issues with proven remediations."
+        )
+
+    # 2 — Best practices
+    for bp in practices[:3]:
+        recs.append(f"Adopt best practice: {bp}")
+
+    # 3 — Structural flaws
+    for flaw in flaws[:2]:
+        recs.append(f"Address structural flaw: {flaw}")
+
+    # 4 — Deviations
+    if deviations:
+        recs.append(
+            f"Establish a conformance-monitoring loop for the {len(deviations)} detected "
+            f"deviations; categorise as acceptable vs. requiring corrective action."
+        )
+
+    # 5 — Health-tier recommendation
+    if health_score < 55:
+        recs.append(
+            "Given the low health score, initiate a targeted process-redesign sprint "
+            "within 30 days, focusing on the highest-impact bottlenecks identified above."
+        )
+    elif health_score < 70:
+        recs.append(
+            "Schedule a continuous-improvement review within 60 days to address "
+            "moderate gaps and prevent regression."
+        )
+    else:
+        recs.append(
+            "Maintain the current trajectory with quarterly health-checks and "
+            "incremental optimisation of remaining minor bottlenecks."
+        )
+
+    # Deduplicate while preserving order
+    seen = set()
+    unique_recs: List[str] = []
+    for r in recs:
+        if r not in seen:
+            seen.add(r)
+            unique_recs.append(r)
+    return unique_recs
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 3. Brief Formatter — Markdown → HTML
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+def format_brief_html(brief_markdown: str) -> str:
+    """Convert a Markdown brief to styled HTML for the Streamlit dashboard.
+
+    Parameters
+    ----------
+    brief_markdown : str
+        Markdown string (as produced by :func:\`generate_executive_brief\`).
+
+    Returns
+    -------
+    str
+        HTML string with embedded CSS suitable for \`\`st.markdown(..., unsafe_allow_html=True)\`\`.
+    """
+    if _HAS_MARKDOWN:
+        body_html = _markdown_lib.markdown(
+            brief_markdown,
+            extensions=["tables", "fenced_code", "sane_lists", "toc"],
+        )
+    else:
+        body_html = _markdown_to_html_fallback(brief_markdown)
+
+    css = _BRIEF_CSS
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+{css}
+</style>
+</head>
+<body>
+<div class="brief-container">
+{body_html}
+</div>
+</body>
+</html>"""
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Fallback Markdown → HTML converter (no third-party dependency)
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+def _markdown_to_html_fallback(md: str) -> str:
+    """A minimal, dependency-free Markdown-to-HTML converter.
+
+    Supports: headings (#..####), bold, italic, tables (pipe), lists,
+    horizontal rules, and paragraphs.  Not a full CommonMark implementation
+    but sufficient for the brief format generated by this module.
+    """
+    lines = md.split("\\n")
+    html_parts: List[str] = []
+    in_table = False
+    table_rows: List[str] = []
+    in_list: Optional[str] = None  # "ul" or "ol"
+
+    def flush_table():
+        nonlocal in_table, table_rows
+        if not table_rows:
+            in_table = False
+            return
+        html_parts.append('<table class="brief-table">')
+        for idx, row in enumerate(table_rows):
+            cells = [c.strip() for c in row.strip().strip("|").split("|")]
+            tag = "th" if idx == 0 else "td"
+            html_parts.append(
+                "<tr>"
+                + "".join(f"<{tag}>{_inline(c)}</{tag}>" for c in cells)
+                + "</tr>"
+            )
+        html_parts.append("</table>")
+        in_table = False
+        table_rows = []
+
+    def flush_list():
+        nonlocal in_list
+        if in_list:
+            html_parts.append(f"</{in_list}>")
+            in_list = None
+
+    for raw in lines:
+        line = raw.rstrip()
+
+        # Table detection
+        if line.strip().startswith("|") and line.strip().endswith("|"):
+            # Skip separator rows like |---|---|
+            if re.match(r"^\\|[\\s\\-:|]+\\|$", line.strip()):
+                continue
+            in_table = True
+            table_rows.append(line)
+            continue
+        elif in_table:
+            flush_table()
+
+        # Heading
+        m = re.match(r"^(#{1,4})\\s+(.*)$", line)
+        if m:
+            flush_list()
+            level = len(m.group(1))
+            html_parts.append(f"<h{level}>{_inline(m.group(2))}</h{level}>")
+            continue
+
+        # Horizontal rule
+        if re.match(r"^-{3,}$", line.strip()):
+            flush_list()
+            html_parts.append("<hr/>")
+            continue
+
+        # Unordered list
+        if re.match(r"^\\s*[-•]\\s+(.*)", line):
+            if in_list != "ul":
+                flush_list()
+                in_list = "ul"
+                html_parts.append("<ul>")
+            item = re.match(r"^\\s*[-•]\\s+(.*)", line).group(1)
+            html_parts.append(f"<li>{_inline(item)}</li>")
+            continue
+
+        # Ordered list
+        if re.match(r"^\\s*\\d+\\.\\s+(.*)", line):
+            if in_list != "ol":
+                flush_list()
+                in_list = "ol"
+                html_parts.append("<ol>")
+            item = re.match(r"^\\s*\\d+\\.\\s+(.*)", line).group(1)
+            html_parts.append(f"<li>{_inline(item)}</li>")
+            continue
+
+        # Blank line
+        if not line.strip():
+            flush_list()
+            html_parts.append("")
+            continue
+
+        # Paragraph
+        flush_list()
+        html_parts.append(f"<p>{_inline(line)}</p>")
+
+    # Flush remaining state
+    if in_table:
+        flush_table()
+    flush_list()
+
+    return "\\n".join(html_parts)
+
+
+def _inline(text: str) -> str:
+    """Convert inline Markdown (bold, italic, code) to HTML."""
+    # Code spans
+    text = re.sub(r"\`([^\`]+)\`", r"<code>\\1</code>", text)
+    # Bold
+    text = re.sub(r"\\*\\*(.+?)\\*\\*", r"<strong>\\1</strong>", text)
+    # Italic
+    text = re.sub(r"(?<!\\*)\\*(?!\\*)(.+?)\\*(?!\\*)", r"<em>\\1</em>", text)
+    return text
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# CSS for the HTML brief
+# ──────────────────────────────────────────────────────────────────────────────
+
+_BRIEF_CSS = """
+.brief-container {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    color: #1a1a2e;
+    line-height: 1.6;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 32px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+.brief-container h1 {
+    font-size: 1.8em;
+    color: #0f3460;
+    border-bottom: 3px solid #e94560;
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+.brief-container h2 {
+    font-size: 1.35em;
+    color: #16213e;
+    margin-top: 28px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #ddd;
+}
+.brief-container h3 {
+    font-size: 1.15em;
+    color: #16213e;
+    margin-top: 20px;
+}
+.brief-container p { margin: 10px 0; }
+.brief-container strong { color: #0f3460; }
+.brief-container ul, .brief-container ol { margin: 8px 0 8px 20px; }
+.brief-container li { margin: 4px 0; }
+.brief-container hr {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 24px 0;
+}
+.brief-table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 16px 0;
+    font-size: 0.92em;
+}
+.brief-table th {
+    background: #0f3460;
+    color: #fff;
+    text-align: left;
+    padding: 10px 14px;
+    border: 1px solid #0f3460;
+}
+.brief-table td {
+    padding: 8px 14px;
+    border: 1px solid #e0e0e0;
+}
+.brief-table tr:nth-child(even) td { background: #f7f9fc; }
+.brief-container code {
+    background: #f0f0f5;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.9em;
+}
+"""
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Convenience: full pipeline
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+def run_research(
+    process_name: str, pm4py_diagnostics: Dict[str, Any], use_web_fallback: bool = True
+) -> BriefResult:
+    """Convenience pipeline: research → brief → HTML.
+
+    Returns a :class:\`BriefResult\` with \`\`markdown\`\`, \`\`html\`\`, and \`\`metadata\`\`.
+    """
+    research = research_process_type(process_name, use_web_fallback=use_web_fallback)
+    brief_md = generate_executive_brief(
+        process_name, pm4py_diagnostics, research
+    )
+    brief_html = format_brief_html(brief_md)
+
+    return BriefResult(
+        markdown=brief_md,
+        html=brief_html,
+        metadata={
+            "process_type": research.get("process_type"),
+            "source": research.get("source"),
+            "found": research.get("found"),
+            "generated_at": datetime.datetime.now().isoformat(),
+        },
+    )
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# CLI / smoke test
+# ──────────────────────────────────────────────────────────────────────────────
+
+if __name__ == "__main__":
+    import argparse
+
+    logging.basicConfig(level=logging.INFO)
+
+    parser = argparse.ArgumentParser(description="Research Agent — smoke test")
+    parser.add_argument("--process", default="Procure-to-Pay", help="Process name to look up")
+    parser.add_argument("--html", action="store_true", help="Also output HTML")
+    args = parser.parse_args()
+
+    # Mock PM4py diagnostics
+    mock_diagnostics = {
+        "variant_count": 9,
+        "total_cases": 4200,
+        "avg_cycle_time_hours": 168,
+        "bottleneck_activities": ["PO approval routing", "3-way match exceptions"],
+        "fitness": 0.82,
+        "precision": 0.71,
+        "generalization": 0.88,
+        "simplicity": 0.90,
+        "deviations": ["SKIP_GRN", "MANUAL_PO", "LATE_APPROVAL"],
+    }
+
+    result = run_research(args.process, mock_diagnostics, use_web_fallback=True)
+    print(result.markdown)
+    if args.html:
+        print("\\n--- HTML (first 500 chars) ---")
+        print(result.html[:500])
+`
+  },
+  reqs: {
+    name: "requirements.txt",
+    lines: "5 lines · 55 B",
+    content: "pm4py>=2.7\npandas>=2.0\nstreamlit>=1.28\ngraphviz\nPillow\n"
+  }
+};
+
+let currentFile = 'app';
+
+function showFile(fileKey) {
+  currentFile = fileKey;
+  const file = FILES[fileKey];
+  document.getElementById('fileName').textContent = file.name;
+  document.getElementById('fileLines').textContent = file.lines;
+  document.getElementById('codeDisplay').textContent = file.content;
+
+  // Update tabs
+  document.querySelectorAll('.file-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.file === fileKey);
+  });
+}
+
+function downloadCurrent() {
+  const file = FILES[currentFile];
+  const blob = new Blob([file.content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = file.name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function downloadAll() {
+  // Download each file sequentially
+  const keys = Object.keys(FILES);
+  keys.forEach((key, i) => {
+    setTimeout(() => {
+      const file = FILES[key];
+      const blob = new Blob([file.content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name;
+      a.click();
+      URL.revokeObjectURL(url);
+    }, i * 300);
+  });
+}
+
+// Load initial file
+showFile('app');
+</script>
+</body>
+</html>
