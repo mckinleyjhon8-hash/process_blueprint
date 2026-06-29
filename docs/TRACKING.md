@@ -34,6 +34,7 @@ _Last updated: 2026-06-29 (Phase 2 LLM brief layer built & tested)_
 - [x] Leak prevention by construction: client digest omits conformance (`brief/context.py`)
 - [x] Client-safe output guard: `brief/redact.py` flags leaked internal terms
 - [x] Default model wired: `claude-opus-4-8` (langchain-anthropic, no temperature)
+- [x] **Pluggable provider** (`brief/providers.py`): anthropic | openai | openrouter, via `LLM_PROVIDER` env or `generate_brief(provider=, model=)` — 7 provider tests
 - [x] Tests with fake chat model — **22 passed** total; CLI `run_phase2.py --demo`
 - [ ] Live generation against real Claude — needs `ANTHROPIC_API_KEY` + data-handling decision
 - [ ] `methodology_map.yaml` as a standalone asset (currently encoded in prompts.py)

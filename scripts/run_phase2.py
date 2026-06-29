@@ -52,19 +52,29 @@ def main() -> int:
     ap.add_argument("log", nargs="?", help="CSV/XES event log (omit for sample)")
     ap.add_argument("--process-type", default="Procure-to-Pay")
     ap.add_argument("--audience", default="internal", choices=["internal", "client"])
+    ap.add_argument("--provider", choices=["anthropic", "openai", "openrouter"],
+                    help="LLM provider (default: $LLM_PROVIDER or anthropic)")
+    ap.add_argument("--model", help="Override the provider's default model")
     ap.add_argument("--demo", action="store_true", help="Use a fake model (no API key)")
     args = ap.parse_args()
 
     log_path = args.log or _sample_log()
     facts = analyze(log_path, process_type=args.process_type)
 
+    _KEY_ENV = {"anthropic": "ANTHROPIC_API_KEY", "openai": "OPENAI_API_KEY",
+                "openrouter": "OPENROUTER_API_KEY"}
+    provider = args.provider or os.environ.get("LLM_PROVIDER", "anthropic")
+
     llm = _demo_llm() if args.demo else None
-    if llm is None and not os.environ.get("ANTHROPIC_API_KEY"):
-        print("[!] ANTHROPIC_API_KEY not set. Re-run with --demo to see the wiring, "
-              "or set the key for a real brief.")
+    if llm is None and not os.environ.get(_KEY_ENV.get(provider, "ANTHROPIC_API_KEY")):
+        print(f"[!] {_KEY_ENV.get(provider)} not set for provider '{provider}'. "
+              f"Re-run with --demo to see the wiring, or set the key for a real brief.")
         return 1
 
-    result = generate_brief(facts, audience=args.audience, llm=llm)
+    result = generate_brief(
+        facts, audience=args.audience, llm=llm,
+        provider=args.provider, model=args.model,
+    )
 
     print(f"\n{'=' * 64}")
     print(f"{args.audience.upper()} BRIEF  |  model={result.model_name}  "

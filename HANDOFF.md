@@ -68,8 +68,18 @@ real client data to Claude. eu-west-1 Supabase already helps with residency. The
 code is provider-pluggable via `generate_brief(..., llm=...)`, so swapping to a
 local model is a one-line change.
 
+## LLM providers (pluggable)
+`brief/providers.py` → `build_llm(provider, model, api_key=...)`. Select via:
+- `LLM_PROVIDER` env: `anthropic` (default), `openai`, `openrouter`
+- or per call: `generate_brief(facts, audience, provider="openrouter", model="anthropic/claude-opus-4")`
+- keys: `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `OPENROUTER_API_KEY`; model overrides:
+  `ANTHROPIC_MODEL` / `OPENAI_MODEL` / `OPENROUTER_MODEL`. OpenRouter base url + optional
+  `OPENROUTER_REFERRER`/`OPENROUTER_TITLE` attribution headers. openai+openrouter share langchain-openai.
+- CLI: `run_phase2.py --provider openrouter --model openai/gpt-4o` (or `--demo`).
+
 ## Phase 2 gotchas
-- Opus 4.8 rejects `temperature`/`budget_tokens` (400). `default_llm()` sets neither.
+- Opus 4.8 rejects `temperature`/`budget_tokens` (400). `ChatAnthropic` defaults temperature
+  to None (not sent) — safe. OpenAI/OpenRouter accept temperature normally.
 - The client-safe guarantee is two-layer: (1) client digest never contains the
   conformance numbers; (2) `redact.scan()` flags any leaked internal term in output.
 - Tests never hit the network — they inject `FakeListChatModel`.

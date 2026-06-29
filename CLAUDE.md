@@ -35,7 +35,9 @@ Client docs (PDF/SOPs) ─► Supabase pgvector ─┘        (facts + evidence 
 - **Mining engine (pm4py)** — discovery, conformance, performance. Emits `ProcessFacts`.
 - **Knowledge (Supabase Postgres + pgvector)** — benchmarks, methodology, per-client docs.
   Replaces RAGFlow for SME scale; RAGFlow only if heavy scanned-PDF parsing is needed.
-- **Orchestration (LangChain + Claude)** — composes facts + retrieved evidence → brief.
+- **Orchestration (LangChain)** — composes facts + retrieved evidence → brief. **Pluggable provider**
+  via `LLM_PROVIDER`: `anthropic` (default, `claude-opus-4-8`), `openai`, or `openrouter`
+  (OpenAI-compatible). Swap with `generate_brief(..., provider=..., model=...)` or env vars.
 - **Portal (Streamlit)** — internal UI; styled using UI/UX Pro Max design data.
 - **Persistence/auth (Supabase)** — internal team only; per-engagement data.
 

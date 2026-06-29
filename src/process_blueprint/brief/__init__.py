@@ -15,11 +15,14 @@ Public surface:
 from .chain import generate_brief, default_llm, BriefResult
 from .scoring import health_score
 from .context import build_context
+from .providers import build_llm, SUPPORTED as SUPPORTED_PROVIDERS
 from . import redact
 
 __all__ = [
     "generate_brief",
     "default_llm",
+    "build_llm",
+    "SUPPORTED_PROVIDERS",
     "BriefResult",
     "health_score",
     "build_context",

@@ -17,12 +17,8 @@ from ..facts import ProcessFacts
 from .context import build_context
 from .prompts import build_prompt
 from .scoring import health_score
+from .providers import build_llm
 from . import redact
-
-# Default model — see the claude-api reference: Opus 4.8 is the most capable
-# Opus-tier model and the recommended default. No temperature/budget_tokens
-# (removed on 4.8). Override via CLAUDE_MODEL if needed.
-DEFAULT_MODEL = "claude-opus-4-8"
 
 
 @dataclass
@@ -35,37 +31,36 @@ class BriefResult:
     redaction_warnings: List[str] = field(default_factory=list)
 
 
-def default_llm(model: Optional[str] = None, max_tokens: int = 4096):
-    """Construct the real Claude chat model (lazy import; needs ANTHROPIC_API_KEY)."""
-    import os
+def default_llm(provider: Optional[str] = None, model: Optional[str] = None):
+    """Construct the real chat model for the configured provider.
 
-    try:
-        from langchain_anthropic import ChatAnthropic
-    except ImportError as exc:  # pragma: no cover
-        raise RuntimeError("`pip install langchain-anthropic` to use the real LLM.") from exc
-
-    return ChatAnthropic(
-        model=model or os.environ.get("CLAUDE_MODEL", DEFAULT_MODEL),
-        max_tokens=max_tokens,
-        timeout=120,
-    )
+    Provider is `LLM_PROVIDER` (anthropic | openai | openrouter); default
+    anthropic / claude-opus-4-8. Needs the matching provider API key in the env.
+    """
+    return build_llm(provider=provider, model=model)
 
 
 def generate_brief(
     facts: ProcessFacts,
     audience: str = "internal",
     llm: Any = None,
+    provider: Optional[str] = None,
+    model: Optional[str] = None,
 ) -> BriefResult:
-    """Generate an executive brief from ProcessFacts for the given audience."""
+    """Generate an executive brief from ProcessFacts for the given audience.
+
+    Pass `llm=` to inject any LangChain chat model (used in tests), or
+    `provider=`/`model=` to pick anthropic/openai/openrouter at call time.
+    """
     audience = audience.lower().strip()
     if audience not in ("internal", "client"):
         raise ValueError("audience must be 'internal' or 'client'")
 
     digest = build_context(facts, audience)
     prompt = build_prompt(audience)
-    model = llm if llm is not None else default_llm()
+    model_llm = llm if llm is not None else default_llm(provider=provider, model=model)
 
-    chain = prompt | model | StrOutputParser()
+    chain = prompt | model_llm | StrOutputParser()
     markdown = chain.invoke(
         {
             "process_type": facts.process_type,
@@ -78,7 +73,12 @@ def generate_brief(
         warnings = redact.scan(markdown)
 
     score, grade = health_score(facts)
-    model_name = getattr(model, "model", None) or type(model).__name__
+    # ChatAnthropic exposes .model; ChatOpenAI exposes .model_name.
+    model_name = (
+        getattr(model_llm, "model", None)
+        or getattr(model_llm, "model_name", None)
+        or type(model_llm).__name__
+    )
 
     return BriefResult(
         audience=audience,
