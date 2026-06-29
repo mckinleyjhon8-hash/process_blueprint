@@ -1,3 +1,6 @@
+# ---- Nested GitHub Desktop clone of this repo (do NOT track) ----
+process_blueprint/
+
 # ---- Vendored reference repos (dependencies, NOT committed) ----
 autoresearch-master/
 langchain-master/

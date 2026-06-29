@@ -3,9 +3,22 @@
 _Session date: 2026-06-29_
 
 ## TL;DR
-Phase 1 (the pm4py mining engine) is **built, tested, and verified end-to-end**.
-The project is scaffolded with docs, tracking, and a clean git repo. Next concrete
-step: **Phase 1.5 — the Supabase schema migration**.
+Phases **1 and 1.5 are done, tested, and verified**. The pm4py engine emits
+`ProcessFacts`; the Supabase schema is live and round-trip-verified. Next concrete
+step: **Phase 2 — the LangChain + Claude brief layer** (blocked only on the LLM
+data-handling decision).
+
+## Phase 1.5 — DONE this session
+- `supabase/migrations/0001_init.sql`: clients, engagements, event_log_runs,
+  process_facts (jsonb), knowledge_chunks (pgvector + hnsw), recommendations.
+- RLS enabled on every table, **no public policies** → public API exposes nothing;
+  the app uses the service-role key server-side (bypasses RLS). The 6
+  `rls_enabled_no_policy` advisor notices are INFO-level and **intentional**.
+- `src/process_blueprint/persistence.py`: `run_row`/`facts_row` (pure, tested) +
+  `insert_process_facts` (lazy supabase client; needs SUPABASE_URL + SUPABASE_SERVICE_KEY).
+- Applied to live project `zrggqvgtthlhwbayckuc` and verified by inserting a full
+  client→engagement→run→facts chain, reading it back (jsonb extraction worked),
+  then deleting it (cascade left the DB clean). Tests: **13 passed**.
 
 ## What was done this session
 - Decided the architecture: pm4py engine → Supabase(+pgvector) → LangChain → Streamlit;
@@ -31,15 +44,16 @@ top bottleneck `Approve PO -> Receive Invoice` (~52.9 h), rework `Approve PO x7`
 this object, never the raw event log. `engine.analyze(file_path, process_type=...)`
 returns it; `.to_json()` serialises it.
 
-## Next step (Phase 1.5)
-Write a **reviewable SQL migration** (do not auto-apply) for the Supabase project
-`zrggqvgtthlhwbayckuc` (eu-west-1, PG17, currently empty):
-`clients`, `engagements`, `event_log_runs`, `process_facts (jsonb)`,
-`knowledge_chunks (vector)`, `recommendations`. Enable `pgvector`. Then a thin
-`persistence.py` to write a `ProcessFacts` row + a read-back test.
+## Next step (Phase 2 — LLM brief)
+Build the LangChain + Claude layer: `ProcessFacts` → executive brief, using
+`docs/METHODOLOGY_MAP.md` for the BABOK-shaped skeleton. Two render targets:
+internal (full mechanics) and client-safe (results only, strips tool/method refs).
+Replaces the legacy static `research_agent.py`. Wire `insert_process_facts` into
+the flow once `SUPABASE_SERVICE_KEY` is available.
 
-## Open decision (blocks Phase 2, not 1.5)
+## Open decision (blocks Phase 2)
 LLM provider + data handling — need a no-train DPA or a local model for client data.
+eu-west-1 Supabase already helps with residency.
 
 ## Gotchas
 - pm4py is **AGPL**: keep it behind `engine.analyze()`; never expose to external users.
