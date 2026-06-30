@@ -36,15 +36,45 @@ export async function getBrief(
   runId: string,
   audience: "internal" | "client",
   provider?: string,
+  model?: string,
 ): Promise<BriefResult> {
   const r = await fetch(`${BASE}/api/brief`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ run_id: runId, audience, provider }),
+    body: JSON.stringify({
+      run_id: runId,
+      audience,
+      provider: provider || undefined,
+      model: model || undefined,
+    }),
   });
   if (!r.ok) throw new Error(await detail(r));
   return r.json();
 }
+
+// --- admin / listing endpoints ---
+export interface ProviderInfo {
+  key_present: boolean;
+  default_model: string;
+  models: string[];
+}
+export interface AppConfig {
+  llm: { default_provider: string; providers: Record<string, ProviderInfo> };
+  embeddings: { provider: string; key_present: boolean };
+  supabase: { configured: boolean };
+}
+
+async function getJSON<T>(path: string): Promise<T> {
+  const r = await fetch(`${BASE}${path}`, { cache: "no-store" });
+  if (!r.ok) throw new Error(await detail(r));
+  return r.json();
+}
+
+export const getConfig = () => getJSON<AppConfig>("/api/config");
+export const getEngagements = () => getJSON<{ source: string; engagements: any[] }>("/api/engagements");
+export const getRuns = () => getJSON<{ source: string; runs: any[] }>("/api/runs");
+export const getKnowledge = () =>
+  getJSON<{ configured: boolean; total: number; by_source: Record<string, number>; chunks: any[] }>("/api/knowledge");
 
 export function reportUrl(runId: string, audience: "internal" | "client", download = false): string {
   const q = `audience=${audience}${download ? "&download=1" : ""}`;

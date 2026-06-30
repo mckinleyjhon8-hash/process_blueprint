@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ShieldCheck, Lock, Sparkles, Download, Loader2, AlertTriangle, ExternalLink, FileCheck } from "lucide-react";
 import type { ProcessFacts } from "@/lib/types";
 import { getBrief, reportUrl } from "@/lib/api";
+import { useLlm } from "@/lib/settings";
 
 type Audience = "internal" | "client";
 
@@ -28,12 +29,10 @@ export function BriefPanel({
   facts,
   runId,
   seedBrief,
-  provider,
 }: {
   facts: ProcessFacts;
   runId?: string;
   seedBrief: string;
-  provider?: string;
 }) {
   const [audience, setAudience] = useState<Audience>("client");
   const [briefs, setBriefs] = useState<Partial<Record<Audience, string>>>({});
@@ -41,6 +40,7 @@ export function BriefPanel({
   const [error, setError] = useState<string | null>(null);
   const [modelName, setModelName] = useState<string | null>(null);
   const [approved, setApproved] = useState(false);
+  const [llm] = useLlm();
 
   const live = briefs[audience];
   // Client deliverable needs consultant sign-off; internal report is always exportable.
@@ -52,7 +52,7 @@ export function BriefPanel({
     setError(null);
     setApproved(false);
     try {
-      const res = await getBrief(runId, audience, provider);
+      const res = await getBrief(runId, audience, llm.provider, llm.model);
       setBriefs((b) => ({ ...b, [audience]: res.markdown }));
       setModelName(res.model_name);
     } catch (e) {
@@ -71,7 +71,7 @@ export function BriefPanel({
           </span>
           <div>
             <h2 className="text-[14px] font-bold text-fg">AI executive brief</h2>
-            <p className="text-[11.5px] text-muted">{modelName || "claude-opus-4-8"} · BABOK-shaped</p>
+            <p className="text-[11.5px] text-muted">{modelName || llm.model || `${llm.provider} (default)`} · BABOK-shaped</p>
           </div>
         </div>
         <div className="flex items-center gap-1 rounded-xl border border-line bg-bg-elev/60 p-1">

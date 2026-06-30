@@ -254,3 +254,112 @@ def report(run_id: str, audience: str = "client", download: int = 0):
             headers={"Content-Disposition": f'attachment; filename="{fname}"'},
         )
     return HTMLResponse(content=html)
+
+
+# --------------------------------------------------------------------------- #
+# Admin / config + listing endpoints (route the whole frontend to the backend)
+# --------------------------------------------------------------------------- #
+_MODELS = {
+    "anthropic": ["claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5-20251001"],
+    "openai": ["gpt-4o", "gpt-4o-mini", "gpt-4.1"],
+    "openrouter": [
+        "anthropic/claude-opus-4",
+        "openai/gpt-4o",
+        "google/gemini-2.0-flash-exp",
+        "meta-llama/llama-3.3-70b-instruct",
+    ],
+}
+
+
+@app.get("/api/config")
+def config() -> Dict[str, Any]:
+    """Admin panel data: which providers/models are usable, key presence, infra."""
+    from process_blueprint.brief.providers import DEFAULTS
+
+    providers = {
+        p: {
+            "key_present": bool(os.environ.get(_PROVIDER_KEY[p])),
+            "default_model": DEFAULTS[p],
+            "models": _MODELS.get(p, []),
+        }
+        for p in ("anthropic", "openai", "openrouter")
+    }
+    return {
+        "llm": {
+            "default_provider": os.environ.get("LLM_PROVIDER", "anthropic"),
+            "providers": providers,
+        },
+        "embeddings": {
+            "provider": os.environ.get("EMBEDDINGS_PROVIDER", "openai"),
+            "key_present": bool(os.environ.get("OPENAI_API_KEY")),
+        },
+        "supabase": {"configured": _supabase() is not None},
+    }
+
+
+@app.get("/api/engagements")
+def engagements() -> Dict[str, Any]:
+    client = _supabase()
+    if client is None:
+        return {
+            "source": "memory",
+            "engagements": [
+                {"id": "local", "name": "Local session", "client_name": "—",
+                 "process_type": "—", "status": "active", "runs": len(_RUNS)}
+            ],
+        }
+    try:
+        from collections import Counter
+
+        engs = (client.table("engagements")
+                .select("id,name,process_type,status,created_at,client_id")
+                .order("created_at", desc=True).execute().data or [])
+        runs = client.table("event_log_runs").select("engagement_id").execute().data or []
+        cnt = Counter(r.get("engagement_id") for r in runs)
+        names = {c["id"]: c["name"] for c in
+                 (client.table("clients").select("id,name").execute().data or [])}
+        for e in engs:
+            e["runs"] = cnt.get(e["id"], 0)
+            e["client_name"] = names.get(e.get("client_id"), "—")
+        return {"source": "supabase", "engagements": engs}
+    except Exception as exc:  # pragma: no cover
+        return {"source": "error", "error": str(exc), "engagements": []}
+
+
+@app.get("/api/runs")
+def runs() -> Dict[str, Any]:
+    client = _supabase()
+    if client is None:
+        return {"source": "memory", "runs": [
+            {"run_id": rid, "process_type": f.process_type, "n_cases": f.n_cases,
+             "n_variants": f.n_variants, "model_fitness": f.model.fitness,
+             "model_precision": f.model.precision, "created_at": f.generated_at}
+            for rid, f in list(_RUNS.items())[::-1]
+        ]}
+    try:
+        rows = (client.table("process_facts")
+                .select("run_id,process_type,n_cases,n_variants,model_fitness,model_precision,created_at")
+                .order("created_at", desc=True).limit(50).execute().data or [])
+        return {"source": "supabase", "runs": rows}
+    except Exception as exc:  # pragma: no cover
+        return {"source": "error", "error": str(exc), "runs": []}
+
+
+@app.get("/api/knowledge")
+def knowledge() -> Dict[str, Any]:
+    client = _supabase()
+    if client is None:
+        return {"configured": False, "total": 0, "by_source": {}, "chunks": []}
+    try:
+        from collections import Counter
+
+        rows = client.table("knowledge_chunks").select("source,title").execute().data or []
+        by_source = dict(Counter(r.get("source") for r in rows))
+        return {
+            "configured": True,
+            "total": len(rows),
+            "by_source": by_source,
+            "chunks": [{"source": r.get("source"), "title": r.get("title")} for r in rows[:60]],
+        }
+    except Exception as exc:  # pragma: no cover
+        return {"configured": True, "total": 0, "by_source": {}, "chunks": [], "error": str(exc)}
