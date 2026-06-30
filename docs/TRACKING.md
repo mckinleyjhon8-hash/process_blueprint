@@ -79,7 +79,12 @@ _Last updated: 2026-06-29 (Phase 4 frontend foundation built & running)_
       Verified live: report HTTP 200, 27KB, real Claude brief embedded; 4 report tests.
 - [x] **Consultant approve gate**: client report export is disabled until "Approve for client".
 - [ ] Real Petri-net image (Graphviz `dot` not installed here; report uses the SVG flow instead — wire `save_vis_petri_net` once Graphviz is present)
-- [ ] Engagements list, upload flow, knowledge admin pages (shell ready)
+- [x] **Routed portal**: sidebar uses next/link + active state; pages /engagements,
+      /briefs, /knowledge, /settings, each fetching live backend data
+      (/api/engagements, /api/runs, /api/knowledge — graceful Supabase/in-memory).
+- [x] **Admin model panel** (/settings): pick generation provider + model
+      (anthropic/openai/openrouter, suggested or custom), key-present badges,
+      embeddings/Supabase status; saved per-browser, applied to /api/brief.
 - [ ] Optional: match a specific Figma frame (needs Dev/Full seat + frame URL)
 
 ## Phase 5 — Hardening
