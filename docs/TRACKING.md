@@ -78,7 +78,18 @@ _Last updated: 2026-06-29 (Phase 4 frontend foundation built & running)_
       Audience-aware (client view strips mechanics). Browser "Save as PDF" = the PDF.
       Verified live: report HTTP 200, 27KB, real Claude brief embedded; 4 report tests.
 - [x] **Consultant approve gate**: client report export is disabled until "Approve for client".
-- [ ] Real Petri-net image (Graphviz `dot` not installed here; report uses the SVG flow instead — wire `save_vis_petri_net` once Graphviz is present)
+- [x] **Real Petri-net render** (`src/process_blueprint/visualize.py`): pm4py + Graphviz
+      Petri net served at `GET /api/process-map/{run_id}`, embedded in the dashboard
+      process-map card and the branded report. Auto-locates `dot` on Windows paths;
+      degrades to the dependency-free SVG flow when Graphviz is absent
+      (`/api/config` reports `render.graphviz`).
+- [x] **Declarative compliance engine** (`src/process_blueprint/compliance.py`):
+      existence / precedence / within_days rules (FREIGHT_SOP_RULES) + BPMN conformance
+      against a documented model (`read_bpmn → Petri → token replay`). Freight check
+      now runs through it; 3 new tests.
+- [x] **Archived-run reports**: `ProcessFacts.from_dict` rebuilds facts from the
+      Supabase jsonb, so /briefs "open" works for past runs, not just in-session ones.
+- [x] Py3.11 compat fix in report.py (backslash-in-f-string SyntaxError).
 - [x] **Routed portal**: sidebar uses next/link + active state; pages /engagements,
       /briefs, /knowledge, /settings, each fetching live backend data
       (/api/engagements, /api/runs, /api/knowledge — graceful Supabase/in-memory).
