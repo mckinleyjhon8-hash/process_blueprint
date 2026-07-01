@@ -35,8 +35,13 @@ def build_report_html(
     audience: str = "client",
     compliance: Optional[Dict[str, Any]] = None,
     firm: str = "Consulting Intelligence",
+    process_map_svg: Optional[str] = None,
 ) -> str:
-    """Return a complete, self-contained branded HTML report."""
+    """Return a complete, self-contained branded HTML report.
+
+    `process_map_svg` — optional real Petri-net SVG (from the engine). When given
+    it is embedded as the process model; otherwise a dependency-free variant flow.
+    """
     audience = audience.lower()
     is_client = audience == "client"
     score, grade = health_score(facts)
@@ -46,7 +51,7 @@ def build_report_html(
         _header(facts, firm, now, is_client),
         _summary_band(facts, score, grade),
         _kpi_cards(facts),
-        _flow_section(facts),
+        _flow_section(facts, process_map_svg),
         _brief_section(brief_markdown, is_client),
         _bottlenecks_section(facts),
     ]
@@ -100,7 +105,17 @@ def _kpi_cards(facts: ProcessFacts) -> str:
     return f'<section class="kpis">{items}</section>'
 
 
-def _flow_section(facts: ProcessFacts) -> str:
+def _flow_section(facts: ProcessFacts, process_map_svg: Optional[str] = None) -> str:
+    if process_map_svg:
+        # Embed the real discovered Petri net (strip any XML prolog/doctype).
+        svg = re.sub(r"<\?xml.*?\?>", "", process_map_svg, flags=re.S)
+        svg = re.sub(r"<!DOCTYPE.*?>", "", svg, flags=re.S)
+        return f"""
+<section>
+  <h2>Discovered process model</h2>
+  <p class="muted">The as-is process mined from the event data (Petri net).</p>
+  <div class="flow flow-map">{svg}</div>
+</section>"""
     if not facts.top_variants:
         return ""
     svg = _flow_svg(facts)
@@ -287,11 +302,13 @@ def _md_to_html(md: str) -> str:
         elif re.match(r"^\s*[-*]\s+", line):
             if not in_ul:
                 close_lists(); out.append("<ul>"); in_ul = True
-            out.append(f"<li>{_inline(re.sub(r'^\\s*[-*]\\s+', '', line))}</li>")
+            item = re.sub(r"^\s*[-*]\s+", "", line)  # no backslash in f-string (py3.11)
+            out.append(f"<li>{_inline(item)}</li>")
         elif re.match(r"^\s*\d+\.\s+", line):
             if not in_ol:
                 close_lists(); out.append("<ol>"); in_ol = True
-            out.append(f"<li>{_inline(re.sub(r'^\\s*\\d+\\.\\s+', '', line))}</li>")
+            item = re.sub(r"^\s*\d+\.\s+", "", line)
+            out.append(f"<li>{_inline(item)}</li>")
         elif re.match(r"^-{3,}$", line.strip()):
             close_lists(); out.append("<hr/>")
         elif not line.strip():
@@ -355,6 +372,8 @@ p{margin:6px 0;font-size:13.5px}
 .kpi-v{font-weight:800;font-size:22px;font-family:'JetBrains Mono',monospace}
 .kpi-l{color:var(--muted);font-size:12px;margin-top:2px}
 .flow{margin-top:10px;background:#fbfcff;border:1px solid var(--line);border-radius:14px;padding:16px}
+.flow-map{overflow:auto}
+.flow-map svg{max-width:100%;height:auto}
 .tbl{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
 .tbl th{text-align:left;color:var(--muted);font-weight:600;border-bottom:1px solid var(--line);padding:7px 8px;font-size:12px}
 .tbl td{border-bottom:1px solid #f1f5f9;padding:7px 8px}

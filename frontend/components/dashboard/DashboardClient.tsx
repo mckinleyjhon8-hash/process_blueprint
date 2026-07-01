@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { RefreshCw, Workflow, Upload, Loader2, AlertTriangle, Play } from "lucide-react";
 import type { ProcessFacts } from "@/lib/types";
-import { analyzeLog, analyzeSample } from "@/lib/api";
+import { analyzeLog, analyzeSample, processMapUrl } from "@/lib/api";
 import { computeHealth } from "@/lib/health";
 import { Card } from "@/components/ui/Card";
 import { KpiRibbon } from "./KpiRibbon";
@@ -36,6 +36,7 @@ export function DashboardClient({
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLive, setIsLive] = useState(false);
+  const [mapErr, setMapErr] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const health = computeHealth(facts.model);
@@ -50,6 +51,7 @@ export function DashboardClient({
   async function run(fn: () => Promise<ProcessFacts>) {
     setAnalyzing(true);
     setError(null);
+    setMapErr(false);
     try {
       const result = await fn();
       setFacts(result);
@@ -169,17 +171,34 @@ export function DashboardClient({
             </button>
           }
         >
-          <div className="grid h-[220px] place-items-center rounded-xl border border-dashed border-line bg-bg-elev/40">
-            <div className="flex flex-col items-center gap-2 text-center">
-              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/12 text-primary">
-                <Workflow size={22} />
-              </span>
-              <p className="text-[13px] font-semibold text-fg-2">Petri-net render</p>
-              <p className="max-w-[260px] text-[11.5px] text-muted">
-                {facts.n_activities} activities · {facts.n_variants} variants · served from the engine.
-              </p>
+          {isLive && facts.run_id && !mapErr ? (
+            <div className="max-h-[300px] overflow-auto rounded-xl border border-line bg-white p-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                key={facts.run_id}
+                src={processMapUrl(facts.run_id)}
+                alt="Discovered Petri net"
+                className="mx-auto h-auto max-w-full"
+                onError={() => setMapErr(true)}
+              />
             </div>
-          </div>
+          ) : (
+            <div className="grid h-[220px] place-items-center rounded-xl border border-dashed border-line bg-bg-elev/40">
+              <div className="flex flex-col items-center gap-2 text-center">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/12 text-primary">
+                  <Workflow size={22} />
+                </span>
+                <p className="text-[13px] font-semibold text-fg-2">Discovered Petri net</p>
+                <p className="max-w-[280px] text-[11.5px] text-muted">
+                  {isLive
+                    ? mapErr
+                      ? "Render unavailable — install Graphviz (winget install Graphviz.Graphviz) for the real Petri net."
+                      : "Rendering…"
+                    : `${facts.n_activities} activities · ${facts.n_variants} variants · run a live analysis to render.`}
+                </p>
+              </div>
+            </div>
+          )}
         </Card>
 
         <Card title="Workflow variants" subtitle="Path distribution" className="lg:col-span-5">

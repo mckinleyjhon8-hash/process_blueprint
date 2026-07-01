@@ -38,8 +38,10 @@ except ImportError:
 
 from process_blueprint import analyze, ProcessFacts            # noqa: E402
 from process_blueprint.engine import analyze_dataframe         # noqa: E402
+from process_blueprint.ingest import ingest                    # noqa: E402
 from process_blueprint.brief import generate_brief             # noqa: E402
 from process_blueprint.report import build_report_html         # noqa: E402
+from process_blueprint.visualize import render_petri_net, graphviz_available  # noqa: E402
 
 app = FastAPI(title="Process Blueprint API", version="0.4.0")
 
@@ -54,6 +56,7 @@ app.add_middleware(
 _RUNS: Dict[str, ProcessFacts] = {}
 _BRIEFS: Dict[tuple, Any] = {}        # (run_id, audience) -> BriefResult
 _COMPLIANCE: Dict[str, Any] = {}      # run_id -> SOP compliance report
+_DFS: Dict[str, Any] = {}             # run_id -> event-log DataFrame (for process-map render)
 
 _PROVIDER_KEY = {
     "anthropic": "ANTHROPIC_API_KEY",
@@ -140,7 +143,9 @@ async def analyze_log(
     try:
         tmp.write(await file.read())
         tmp.close()
-        facts = analyze(tmp.name, process_type=process_type, algorithm=algorithm)
+        df, _ = ingest(tmp.name)  # keep the df so we can render the process map
+        facts = analyze_dataframe(df, process_type=process_type, algorithm=algorithm)
+        facts.source_file = file.filename or "uploaded.csv"
     except Exception as exc:  # surface ingest/mining errors cleanly
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     finally:
@@ -151,6 +156,7 @@ async def analyze_log(
 
     run_id = uuid.uuid4().hex
     _RUNS[run_id] = facts
+    _DFS[run_id] = df
     payload = facts.to_dict()
     payload["run_id"] = run_id
     payload["persisted"] = _persist(facts) is not None
@@ -186,6 +192,7 @@ def analyze_sample(cases: int = 400, process: str = "Procure-to-Pay") -> Dict[st
 
     run_id = uuid.uuid4().hex
     _RUNS[run_id] = facts
+    _DFS[run_id] = df
     payload = facts.to_dict()
     payload["run_id"] = run_id
     payload["persisted"] = _persist(facts) is not None
@@ -233,18 +240,58 @@ def brief(req: BriefRequest) -> Dict[str, Any]:
     }
 
 
+def _facts_for_run(run_id: str) -> Optional[ProcessFacts]:
+    """In-session facts, else rebuild from the Supabase process_facts jsonb."""
+    facts = _RUNS.get(run_id)
+    if facts is not None:
+        return facts
+    client = _supabase()
+    if client is None:
+        return None
+    try:
+        rows = (client.table("process_facts").select("facts")
+                .eq("run_id", run_id).limit(1).execute().data or [])
+        if rows:
+            return ProcessFacts.from_dict(rows[0]["facts"])
+    except Exception:
+        pass
+    return None
+
+
+@app.get("/api/process-map/{run_id}")
+def process_map(run_id: str, algorithm: str = "inductive"):
+    """Render the discovered Petri net for an in-session run as an SVG image."""
+    df = _DFS.get(run_id)
+    if df is None:
+        raise HTTPException(status_code=404, detail="No cached log for this run.")
+    svg = render_petri_net(df, algorithm=algorithm, fmt="svg")
+    if svg is None:
+        raise HTTPException(status_code=503, detail="Graphviz unavailable to render the Petri net.")
+    return Response(content=svg, media_type="image/svg+xml")
+
+
 @app.get("/api/report/{run_id}")
 def report(run_id: str, audience: str = "client", download: int = 0):
     """Render the branded HTML deliverable for a run (client or internal)."""
-    facts = _RUNS.get(run_id)
+    facts = _facts_for_run(run_id)
     if facts is None:
-        raise HTTPException(status_code=404, detail="Unknown run_id; analyze first.")
+        raise HTTPException(status_code=404, detail="Unknown run_id.")
 
     brief = _BRIEFS.get((run_id, audience))
     brief_md = brief.markdown if brief is not None else None
     compliance = _COMPLIANCE.get(run_id)
 
-    html = build_report_html(facts, brief_md, audience=audience, compliance=compliance)
+    # Real Petri net for in-session runs (we have the log cached); else the flow SVG.
+    map_svg = None
+    df = _DFS.get(run_id)
+    if df is not None:
+        raw = render_petri_net(df, fmt="svg")
+        if raw:
+            map_svg = raw.decode("utf-8", "replace")
+
+    html = build_report_html(
+        facts, brief_md, audience=audience, compliance=compliance, process_map_svg=map_svg
+    )
 
     if download:
         fname = f"{facts.process_type.replace(' ', '_')}_{audience}_report.html"
@@ -294,6 +341,7 @@ def config() -> Dict[str, Any]:
             "key_present": bool(os.environ.get("OPENAI_API_KEY")),
         },
         "supabase": {"configured": _supabase() is not None},
+        "render": {"graphviz": graphviz_available()},
     }
 
 

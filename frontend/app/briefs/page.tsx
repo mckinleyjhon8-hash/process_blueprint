@@ -59,13 +59,13 @@ export default function BriefsPage() {
                   <td className="px-5 py-3 text-right font-mono text-fg-2">{r.model_fitness != null ? Number(r.model_fitness).toFixed(2) : "—"}</td>
                   <td className="px-5 py-3 text-right font-mono text-fg-2">{r.model_precision != null ? Number(r.model_precision).toFixed(2) : "—"}</td>
                   <td className="px-5 py-3 text-right">
-                    {data.source === "memory" && r.run_id ? (
+                    {r.run_id ? (
                       <a href={reportUrl(r.run_id, "internal")} target="_blank" rel="noreferrer"
                         className="inline-flex items-center gap-1 text-[12px] font-semibold text-primary hover:underline">
                         <ExternalLink size={12} /> open
                       </a>
                     ) : (
-                      <span className="text-[11px] text-muted">archived</span>
+                      <span className="text-[11px] text-muted">—</span>
                     )}
                   </td>
                 </tr>

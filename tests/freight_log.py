@@ -39,8 +39,12 @@ RES = "org:resource"
 CLAIM_WINDOW_DAYS = 9  # BIFA STC international claim window (§7.6)
 
 
-def _trace(rng: random.Random) -> List[Tuple[str, str, float]]:
-    """Return [(activity, resource, wait_hours_before), ...] for one freight job."""
+def _trace(rng: random.Random, dev: bool = True) -> List[Tuple[str, str, float]]:
+    """Return [(activity, resource, wait_hours_before), ...] for one freight job.
+
+    `dev=False` produces a clean, fully-conformant "to-be" trace (no injected SOP
+    breaches) — useful as a reference for BPMN/declarative conformance.
+    """
     steps: List[Tuple[str, str, float]] = []
 
     def add(a: str, role: str, lo: float, hi: float) -> None:
@@ -51,7 +55,7 @@ def _trace(rng: random.Random) -> List[Tuple[str, str, float]]:
     add("Customer Due Diligence", "Compliance", 0.5, 6)
     if rng.random() < 0.18:  # high-risk sector -> EDD
         add("Enhanced Due Diligence", "Compliance", 4, 24)
-    skip_sanctions = rng.random() < 0.06  # DEVIATION 1
+    skip_sanctions = dev and rng.random() < 0.06  # DEVIATION 1
     if not skip_sanctions:
         add("Sanctions Check", "Compliance", 0.2, 2)
 
@@ -71,7 +75,7 @@ def _trace(rng: random.Random) -> List[Tuple[str, str, float]]:
 
     # --- Stage 4: Carrier Procurement ---
     new_carrier = rng.random() < 0.22
-    kyc_before_award = not (new_carrier and rng.random() < 0.05)  # DEVIATION 4
+    kyc_before_award = not (dev and new_carrier and rng.random() < 0.05)  # DEVIATION 4
     if new_carrier and kyc_before_award:
         add("Carrier KYC", "Compliance", 4, 36)
     add("Source Capacity", "Capacity Buyer", 0.2, 3)
@@ -84,12 +88,12 @@ def _trace(rng: random.Random) -> List[Tuple[str, str, float]]:
     add("Award Carrier", "Capacity Buyer", 0.1, 1)
     if new_carrier and not kyc_before_award:
         add("Carrier KYC", "Compliance", 4, 36)  # out-of-order (DEVIATION 4)
-    if rng.random() >= 0.07:  # DEVIATION 2: skip OCRS ~7%
+    if (not dev) or rng.random() >= 0.07:  # DEVIATION 2: skip OCRS ~7%
         add("OCRS Check", "Capacity Buyer", 0.1, 1)
 
     # --- Stage 5: Compliance Pack-out ---
     cross_border = rng.random() < 0.30
-    cmr_after_pickup = cross_border and rng.random() < 0.08  # DEVIATION 3
+    cmr_after_pickup = dev and cross_border and rng.random() < 0.08  # DEVIATION 3
     if cross_border and not cmr_after_pickup:
         add("Issue CMR", "Operations Admin", 0.3, 3)
     elif not cross_border:
@@ -115,15 +119,15 @@ def _trace(rng: random.Random) -> List[Tuple[str, str, float]]:
 
     # --- Stage 7: POD, Billing, Claims, Returns ---
     add("Capture POD", "Operations Admin", 0.5, 8)
+    if damaged:  # claims are triggered at delivery and handled within the SOP window
+        late = dev and rng.random() < 0.30  # DEVIATION 5: late claim
+        wait = rng.uniform(96, 180) if late else rng.uniform(4, 20)
+        steps.append(("Handle Claim", "Claims Handler", wait))
     if refused:
         add("Process Return", "Returns", 4, 48)
     add("Raise Carrier Invoice", "Finance AR", 4, 48)
     add("Raise Customer Invoice", "Finance AR", 0.5, 24)
     add("Reconcile Invoices", "Finance Controller", 1, 24)
-    if damaged:
-        late = rng.random() < 0.30  # DEVIATION 5: late claim
-        wait = rng.uniform(90, 170) if late else rng.uniform(4, 30)
-        steps.append(("Handle Claim", "Claims Handler", wait))
 
     # --- Stage 8: Finance & KPI close ---
     add("Post Transactions", "Finance", 2, 48)
@@ -131,15 +135,18 @@ def _trace(rng: random.Random) -> List[Tuple[str, str, float]]:
     return steps
 
 
-def build_freight_log(n_cases: int = 500, seed: int = 11) -> pd.DataFrame:
-    """Return a normalised UK freight-brokerage event log with named resources."""
+def build_freight_log(n_cases: int = 500, seed: int = 11, deviations: bool = True) -> pd.DataFrame:
+    """Return a normalised UK freight-brokerage event log with named resources.
+
+    `deviations=False` yields a clean, fully-conformant "to-be" log.
+    """
     rng = random.Random(seed)
     base = dt.datetime(2026, 1, 5, 9, 0, 0)  # a Monday
     rows = []
     for i in range(n_cases):
         case = f"JOB-{440000 + i}"
         t = _biz_advance(base, rng.uniform(0, 180 * 8))
-        for act, role, wait in _trace(rng):
+        for act, role, wait in _trace(rng, dev=deviations):
             t = _biz_advance(t, wait)
             rows.append({CASE: case, ACT: act, TS: t, RES: role})
     df = pd.DataFrame(rows)
@@ -156,44 +163,7 @@ def write_freight_csv(path: str, n_cases: int = 500, seed: int = 11) -> str:
 # Rule-based SOP compliance check (a tiny declarative-conformance layer)
 # --------------------------------------------------------------------------- #
 def check_sop_compliance(df: pd.DataFrame) -> Dict[str, Any]:
-    """Detect the SOP control breaches from the event log, per case."""
-    findings = {
-        "sanctions_check_missing": [],   # §1.2
-        "ocrs_check_missing": [],        # §4.7
-        "cmr_after_pickup": [],          # §5.1
-        "kyc_after_award": [],           # §2.3 / §4
-        "claim_outside_9_day_window": [],  # §7.6
-    }
+    """Detect SOP control breaches via the declarative compliance engine."""
+    from process_blueprint.compliance import check_rules, FREIGHT_SOP_RULES
 
-    for case_id, g in df.sort_values(TS).groupby(CASE):
-        acts = list(g[ACT])
-        first_ts = dict(g.groupby(ACT)[TS].min())  # first time of each activity
-
-        booked = "Customer Accepts Quote" in acts
-        awarded = "Award Carrier" in acts
-
-        if booked and "Sanctions Check" not in acts:
-            findings["sanctions_check_missing"].append(case_id)
-        if awarded and "OCRS Check" not in acts:
-            findings["ocrs_check_missing"].append(case_id)
-        if "Issue CMR" in first_ts and "Confirm Pickup" in first_ts:
-            if first_ts["Issue CMR"] > first_ts["Confirm Pickup"]:
-                findings["cmr_after_pickup"].append(case_id)
-        if "Carrier KYC" in first_ts and "Award Carrier" in first_ts:
-            if first_ts["Carrier KYC"] > first_ts["Award Carrier"]:
-                findings["kyc_after_award"].append(case_id)
-        if "Handle Claim" in first_ts and "Confirm Delivery" in first_ts:
-            gap_days = (first_ts["Handle Claim"] - first_ts["Confirm Delivery"]).days
-            if gap_days > CLAIM_WINDOW_DAYS:
-                findings["claim_outside_9_day_window"].append(case_id)
-
-    n_cases = df[CASE].nunique()
-    summary = {
-        rule: {
-            "violations": len(cases),
-            "pct_of_cases": round(100 * len(cases) / n_cases, 1) if n_cases else 0.0,
-            "example_cases": cases[:3],
-        }
-        for rule, cases in findings.items()
-    }
-    return {"n_cases": n_cases, "rules": summary}
+    return check_rules(df, FREIGHT_SOP_RULES)

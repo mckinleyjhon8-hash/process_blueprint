@@ -48,3 +48,11 @@ def test_report_renders_compliance(sample_facts):
 def test_report_without_brief_degrades_gracefully(sample_facts):
     html = build_report_html(sample_facts, None, audience="client")
     assert "has not been generated" in html
+
+
+def test_report_embeds_real_process_map(sample_facts):
+    fake_svg = '<?xml version="1.0"?><svg id="petri"><rect/></svg>'
+    html = build_report_html(sample_facts, _BRIEF, audience="client", process_map_svg=fake_svg)
+    assert "Discovered process model" in html
+    assert 'id="petri"' in html
+    assert "<?xml" not in html  # prolog stripped before embedding

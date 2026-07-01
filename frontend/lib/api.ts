@@ -81,6 +81,10 @@ export function reportUrl(runId: string, audience: "internal" | "client", downlo
   return `${BASE}/api/report/${runId}?${q}`;
 }
 
+export function processMapUrl(runId: string): string {
+  return `${BASE}/api/process-map/${runId}`;
+}
+
 export async function apiHealth(): Promise<boolean> {
   try {
     const r = await fetch(`${BASE}/api/health`, { cache: "no-store" });

@@ -110,6 +110,50 @@ class ProcessFacts:
     def to_json(self, indent: int = 2) -> str:
         return json.dumps(self.to_dict(), indent=indent, ensure_ascii=False)
 
+    @classmethod
+    def from_dict(cls, d: Dict[str, Any]) -> "ProcessFacts":
+        """Rebuild a ProcessFacts from its serialised form (e.g. a Supabase jsonb)."""
+        m = d.get("model") or {}
+        model = ModelQuality(
+            algorithm=m.get("algorithm", "none"),
+            fitness=m.get("fitness"),
+            fitness_alignments=m.get("fitness_alignments"),
+            precision=m.get("precision"),
+            generalization=m.get("generalization"),
+            simplicity=m.get("simplicity"),
+        )
+        bottlenecks = [
+            Bottleneck(
+                source=b["source"], target=b["target"],
+                mean_wait_seconds=b["mean_wait_seconds"], occurrences=b["occurrences"],
+            )
+            for b in d.get("bottlenecks", [])
+        ]
+        variants = [
+            Variant(sequence=tuple(v["sequence"]), frequency=v["frequency"])
+            for v in d.get("top_variants", [])
+        ]
+        return cls(
+            process_type=d.get("process_type", "Unknown"),
+            source_file=d.get("source_file", ""),
+            n_events=d.get("n_events", 0),
+            n_cases=d.get("n_cases", 0),
+            n_activities=d.get("n_activities", 0),
+            n_variants=d.get("n_variants", 0),
+            avg_cycle_time_seconds=d.get("avg_cycle_time_seconds", 0.0),
+            median_cycle_time_seconds=d.get("median_cycle_time_seconds", 0.0),
+            start_activities=d.get("start_activities", {}),
+            end_activities=d.get("end_activities", {}),
+            activity_frequencies=d.get("activity_frequencies", {}),
+            model=model,
+            bottlenecks=bottlenecks,
+            top_variants=variants,
+            rework_activities=d.get("rework_activities", {}),
+            schema_version=d.get("schema_version", SCHEMA_VERSION),
+            generated_at=d.get("generated_at", ""),
+            notifications=d.get("notifications", []),
+        )
+
     @property
     def avg_cycle_time_hours(self) -> float:
         return round(self.avg_cycle_time_seconds / 3600.0, 4)

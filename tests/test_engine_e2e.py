@@ -65,3 +65,14 @@ def test_analyze_from_csv(sample_csv):
     assert facts.n_cases == 60
     assert facts.source_file == sample_csv
     assert facts.model.fitness is not None
+
+
+def test_facts_from_dict_roundtrip(sample_facts):
+    """Supabase stores facts as jsonb; from_dict must rebuild an equivalent object."""
+    rebuilt = ProcessFacts.from_dict(sample_facts.to_dict())
+    assert rebuilt.n_cases == sample_facts.n_cases
+    assert rebuilt.n_variants == sample_facts.n_variants
+    assert rebuilt.model.fitness == sample_facts.model.fitness
+    assert len(rebuilt.bottlenecks) == len(sample_facts.bottlenecks)
+    assert rebuilt.bottlenecks[0].source == sample_facts.bottlenecks[0].source
+    assert tuple(rebuilt.top_variants[0].sequence) == tuple(sample_facts.top_variants[0].sequence)
