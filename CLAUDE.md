@@ -38,10 +38,13 @@ Client docs (PDF/SOPs) ─► Supabase pgvector ─┘        (facts + evidence 
 - **Orchestration (LangChain)** — composes facts + retrieved evidence → brief. **Pluggable provider**
   via `LLM_PROVIDER`: `anthropic` (default, `claude-opus-4-8`), `openai`, or `openrouter`
   (OpenAI-compatible). Swap with `generate_brief(..., provider=..., model=...)` or env vars.
-- **Portal (Next.js 16 + React 19 + Tailwind v4, `frontend/`)** — premium-dark enterprise UI
-  (UI/UX Pro Max: indigo/violet, Plus Jakarta Sans + JetBrains Mono). Talks to a thin
-  **FastAPI** backend (`backend/api.py`) that wraps the engine. Run: `uvicorn backend.api:app --port 8000`
-  + `npm --prefix frontend run dev`. (Figma optional — needs Dev seat + frame URL.)
+- **Portal (Next.js 16 + React 19 + Tailwind v4, `frontend/`)** — Monday-class light work-OS UI
+  (UI/UX Pro Max `colors.csv` №21 basis: **#6161FF** primary on **#F6F7FB** canvas, rainbow status
+  accents, Figtree + JetBrains Mono). Token-driven design system in `app/globals.css`; primitives in
+  `components/ui/`; Ctrl+K palette; per-run workspace `/runs/[id]` + full-viewport Map Studio
+  `/runs/[id]/map`. Talks to a thin **FastAPI** backend (`backend/api.py`) that wraps the engine.
+  Run: `uvicorn backend.api:app --port 8000` + `npm --prefix frontend run dev`.
+  (Figma optional — needs Dev seat + frame URL.)
 - **Persistence/auth (Supabase)** — internal team only; per-engagement data.
 
 ### Components & licenses (resolved)

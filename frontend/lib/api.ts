@@ -62,6 +62,31 @@ export interface AppConfig {
   llm: { default_provider: string; providers: Record<string, ProviderInfo> };
   embeddings: { provider: string; key_present: boolean };
   supabase: { configured: boolean };
+  render?: { graphviz: boolean };
+}
+
+export interface RunSummary {
+  run_id: string | null;
+  process_type: string | null;
+  n_cases: number | null;
+  n_variants: number | null;
+  model_fitness: number | null;
+  model_precision: number | null;
+  created_at: string | null;
+}
+
+export interface Engagement {
+  id?: string;
+  name: string;
+  client_name?: string | null;
+  process_type?: string | null;
+  status?: string | null;
+  runs?: number;
+}
+
+export interface KnowledgeChunk {
+  title: string;
+  source: string;
 }
 
 async function getJSON<T>(path: string): Promise<T> {
@@ -71,10 +96,18 @@ async function getJSON<T>(path: string): Promise<T> {
 }
 
 export const getConfig = () => getJSON<AppConfig>("/api/config");
-export const getEngagements = () => getJSON<{ source: string; engagements: any[] }>("/api/engagements");
-export const getRuns = () => getJSON<{ source: string; runs: any[] }>("/api/runs");
+export const getEngagements = () =>
+  getJSON<{ source: string; engagements: Engagement[] }>("/api/engagements");
+export const getRuns = () => getJSON<{ source: string; runs: RunSummary[] }>("/api/runs");
+export const getRun = (runId: string) =>
+  getJSON<ProcessFacts & { has_map?: boolean }>(`/api/run/${runId}`);
 export const getKnowledge = () =>
-  getJSON<{ configured: boolean; total: number; by_source: Record<string, number>; chunks: any[] }>("/api/knowledge");
+  getJSON<{
+    configured: boolean;
+    total: number;
+    by_source: Record<string, number>;
+    chunks: KnowledgeChunk[];
+  }>("/api/knowledge");
 
 export function reportUrl(runId: string, audience: "internal" | "client", download = false): string {
   const q = `audience=${audience}${download ? "&download=1" : ""}`;

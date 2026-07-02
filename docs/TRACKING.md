@@ -96,6 +96,18 @@ _Last updated: 2026-06-29 (Phase 4 frontend foundation built & running)_
 - [x] **Admin model panel** (/settings): pick generation provider + model
       (anthropic/openai/openrouter, suggested or custom), key-present badges,
       embeddings/Supabase status; saved per-browser, applied to /api/brief.
+- [x] **Enterprise redesign (IA + design system)**: token-driven system in `globals.css`;
+      `components/ui/` primitives (Button/Badge/Card/Field/Tabs/DataTable/EmptyState/
+      Skeleton/Kbd/Page); Ctrl+K command palette; breadcrumb topbar + mobile drawer nav;
+      per-run workspace `/runs/[id]` (Overview/Map/Compliance/Brief tabs); full-viewport
+      **Map Studio** `/runs/[id]/map` (zoom/pan/fit/fullscreen/minimap, facts-derived
+      dependency graph + Petri-net layer, inspector, search); sortable/searchable tables;
+      dashboard = command center (attention items, recent runs, system status);
+      GET /api/run/{id} powers deep links. WCAG focus rings + reduced-motion.
+- [x] **Monday-class light re-skin**: UI/UX Pro Max `colors.csv` №21 basis —
+      #6161FF primary on #F6F7FB canvas, white surfaces, rainbow status accents
+      (#00C875/#FDAB3D/#E2445C/#579BFC/#A25DDC), Figtree typeface; map canvas +
+      graph re-tokenised for light (`--map-*` vars). Verified live in preview.
 - [ ] Optional: match a specific Figma frame (needs Dev/Full seat + frame URL)
 
 ## Phase 5 — Hardening

@@ -74,7 +74,7 @@ export function BriefPanel({
             <p className="text-[11.5px] text-muted">{modelName || llm.model || `${llm.provider} (default)`} · BABOK-shaped</p>
           </div>
         </div>
-        <div className="flex items-center gap-1 rounded-xl border border-line bg-bg-elev/60 p-1">
+        <div className="flex items-center gap-1 rounded-xl border border-line bg-panel-2/60 p-1">
           {(["internal", "client"] as const).map((a) => (
             <button
               key={a}
@@ -100,7 +100,7 @@ export function BriefPanel({
         </span>
       )}
 
-      <div className="max-h-[440px] min-h-[200px] overflow-y-auto rounded-xl border border-line bg-bg-elev/40 p-5">
+      <div className="max-h-[440px] min-h-[200px] overflow-y-auto rounded-xl border border-line bg-panel-2/40 p-5">
         {error && (
           <div className="flex items-start gap-2 rounded-lg bg-danger/10 p-3 text-[12.5px] text-danger ring-1 ring-inset ring-danger/25">
             <AlertTriangle size={15} className="mt-0.5 shrink-0" />

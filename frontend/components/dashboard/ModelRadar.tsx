@@ -37,10 +37,10 @@ export function ModelRadar({ model }: { model: ModelQuality }) {
         const [x, y] = point(i, R);
         return <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke="var(--color-line)" strokeWidth="1" />;
       })}
-      <polygon points={poly} fill="rgba(99,102,241,0.22)" stroke="#6366f1" strokeWidth="2" />
+      <polygon points={poly} fill="rgba(97,97,255,0.16)" stroke="var(--color-primary)" strokeWidth="2" />
       {values.map((v, i) => {
         const [x, y] = point(i, R * v);
-        return <circle key={i} cx={x} cy={y} r="3" fill="#8b5cf6" />;
+        return <circle key={i} cx={x} cy={y} r="3" fill="var(--color-violet)" />;
       })}
       {AXES.map((a, i) => {
         const [x, y] = point(i, R + 18);

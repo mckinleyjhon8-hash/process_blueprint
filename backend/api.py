@@ -154,12 +154,15 @@ async def analyze_log(
         except OSError:
             pass
 
-    run_id = uuid.uuid4().hex
+    # Persist first and adopt the Supabase run id as canonical, so the same id
+    # works in-session AND after a restart (rebuilt from the process_facts jsonb).
+    persisted = _persist(facts)
+    run_id = (persisted or {}).get("run_id") or uuid.uuid4().hex
     _RUNS[run_id] = facts
     _DFS[run_id] = df
     payload = facts.to_dict()
     payload["run_id"] = run_id
-    payload["persisted"] = _persist(facts) is not None
+    payload["persisted"] = persisted is not None
     return payload
 
 
@@ -190,12 +193,13 @@ def analyze_sample(cases: int = 400, process: str = "Procure-to-Pay") -> Dict[st
     except Exception as exc:  # pragma: no cover
         raise HTTPException(status_code=500, detail=f"sample generation failed: {exc}")
 
-    run_id = uuid.uuid4().hex
+    persisted = _persist(facts)
+    run_id = (persisted or {}).get("run_id") or uuid.uuid4().hex
     _RUNS[run_id] = facts
     _DFS[run_id] = df
     payload = facts.to_dict()
     payload["run_id"] = run_id
-    payload["persisted"] = _persist(facts) is not None
+    payload["persisted"] = persisted is not None
     if compliance is not None:
         payload["compliance"] = compliance
         _COMPLIANCE[run_id] = compliance
@@ -211,7 +215,8 @@ class BriefRequest(BaseModel):
 
 @app.post("/api/brief")
 def brief(req: BriefRequest) -> Dict[str, Any]:
-    facts = _RUNS.get(req.run_id)
+    # In-session first, else rebuild from Supabase so archived runs work too.
+    facts = _facts_for_run(req.run_id)
     if facts is None:
         raise HTTPException(status_code=404, detail="Unknown run_id; analyze first.")
 
@@ -256,6 +261,22 @@ def _facts_for_run(run_id: str) -> Optional[ProcessFacts]:
     except Exception:
         pass
     return None
+
+
+@app.get("/api/run/{run_id}")
+def run_detail(run_id: str) -> Dict[str, Any]:
+    """Full facts for one run (in-session or rebuilt from Supabase) — powers /runs/[id]."""
+    facts = _facts_for_run(run_id)
+    if facts is None:
+        raise HTTPException(status_code=404, detail="Unknown run_id.")
+    payload = facts.to_dict()
+    payload["run_id"] = run_id
+    compliance = _COMPLIANCE.get(run_id)
+    if compliance is not None:
+        payload["compliance"] = compliance
+    # The Petri net can only render while the log is cached this session.
+    payload["has_map"] = run_id in _DFS and graphviz_available()
+    return payload
 
 
 @app.get("/api/process-map/{run_id}")

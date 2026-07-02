@@ -19,8 +19,8 @@ export function HealthScore({
           <circle cx="70" cy="70" r={r} fill="none" stroke="var(--color-line)" strokeWidth="10" />
           <defs>
             <linearGradient id="hs" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#10b981" />
-              <stop offset="100%" stopColor="#6366f1" />
+              <stop offset="0%" stopColor="var(--color-success-vivid)" />
+              <stop offset="100%" stopColor="var(--color-primary)" />
             </linearGradient>
           </defs>
           <circle

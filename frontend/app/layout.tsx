@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { Figtree, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/shell/Sidebar";
 import { Topbar } from "@/components/shell/Topbar";
+import { CommandPalette } from "@/components/shell/CommandPalette";
 
-const jakarta = Plus_Jakarta_Sans({
+// Figtree: the friendly geometric sans of the Monday-class light system.
+const jakarta = Figtree({
   variable: "--font-jakarta",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
@@ -26,14 +28,23 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${jakarta.variable} ${jet.variable} h-full antialiased`}>
-      <body className="min-h-full">
-        <div className="flex min-h-screen">
+      <body className="h-full">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[70] focus:rounded-lg focus:bg-primary-strong focus:px-3 focus:py-2 focus:text-xs focus:font-semibold focus:text-white"
+        >
+          Skip to content
+        </a>
+        <div className="flex h-screen">
           <Sidebar />
           <div className="flex min-w-0 flex-1 flex-col">
             <Topbar />
-            <main className="flex-1 px-6 py-6 lg:px-8">{children}</main>
+            <main id="main" className="min-h-0 flex-1 overflow-y-auto">
+              {children}
+            </main>
           </div>
         </div>
+        <CommandPalette />
       </body>
     </html>
   );

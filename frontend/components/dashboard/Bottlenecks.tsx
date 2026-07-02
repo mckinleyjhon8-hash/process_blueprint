@@ -24,7 +24,7 @@ export function Bottlenecks({ items }: { items: Bottleneck[] }) {
             <div className="mt-2 flex items-center gap-3">
               <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-warning to-danger"
+                  className="h-full rounded-full bg-gradient-to-r from-warning-vivid to-danger"
                   style={{ width: `${w}%` }}
                 />
               </div>

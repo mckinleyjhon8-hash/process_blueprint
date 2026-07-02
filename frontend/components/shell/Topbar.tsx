@@ -3,73 +3,110 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, ChevronDown, Sparkles } from "lucide-react";
+import { ChevronRight, Search, Sparkles } from "lucide-react";
 import { apiHealth } from "@/lib/api";
+import { StatusDot } from "@/components/ui/Badge";
+import { Kbd } from "@/components/ui/Kbd";
+import { MobileNav } from "./Sidebar";
 
-const TITLES: Record<string, { title: string; sub: string }> = {
-  "/": { title: "Dashboard", sub: "Mine a log, generate the brief, export the report" },
-  "/engagements": { title: "Engagements", sub: "Clients, projects and their analysis runs" },
-  "/briefs": { title: "Briefs & runs", sub: "Every analysis recorded by the engine" },
-  "/knowledge": { title: "Knowledge", sub: "Benchmarks and documents grounding the briefs" },
-  "/settings": { title: "Settings", sub: "Models, providers and infrastructure" },
+const SEGMENT_LABELS: Record<string, string> = {
+  engagements: "Engagements",
+  runs: "Runs & briefs",
+  knowledge: "Knowledge",
+  settings: "Settings",
+  map: "Map Studio",
 };
 
-export function Topbar() {
+/** Breadcrumbs derived from the URL — works for dynamic routes too. */
+function Breadcrumbs() {
   const pathname = usePathname();
-  const meta = TITLES[pathname] ?? TITLES["/"];
-  const [online, setOnline] = useState<boolean | null>(null);
+  const segments = pathname.split("/").filter(Boolean);
 
+  const crumbs = [{ href: "/", label: "Dashboard" }];
+  let acc = "";
+  for (const seg of segments) {
+    acc += `/${seg}`;
+    const label =
+      SEGMENT_LABELS[seg] ?? (seg.length > 10 ? `${seg.slice(0, 8)}…` : seg); // run ids get shortened
+    crumbs.push({ href: acc, label });
+  }
+
+  return (
+    <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-sm">
+      {crumbs.map((c, i) => {
+        const last = i === crumbs.length - 1;
+        return (
+          <span key={c.href} className="flex min-w-0 items-center gap-1.5">
+            {i > 0 && <ChevronRight size={13} className="shrink-0 text-muted/60" />}
+            {last ? (
+              <span aria-current="page" className="truncate font-bold text-fg">
+                {c.label}
+              </span>
+            ) : (
+              <Link href={c.href} className="truncate font-medium text-muted transition-colors hover:text-fg-2">
+                {c.label}
+              </Link>
+            )}
+          </span>
+        );
+      })}
+    </nav>
+  );
+}
+
+function EngineStatus() {
+  const [online, setOnline] = useState<boolean | null>(null);
   useEffect(() => {
     let alive = true;
-    apiHealth().then((ok) => alive && setOnline(ok));
-    const t = setInterval(() => apiHealth().then((ok) => alive && setOnline(ok)), 15000);
+    const check = () => apiHealth().then((ok) => alive && setOnline(ok));
+    check();
+    const t = setInterval(check, 15000);
     return () => {
       alive = false;
       clearInterval(t);
     };
   }, []);
-
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-line bg-bg/70 px-6 backdrop-blur-xl lg:px-8">
-      <div>
-        <h1 className="text-[15px] font-bold leading-none text-fg">{meta.title}</h1>
-        <p className="mt-1 text-[11.5px] text-muted">{meta.sub}</p>
-      </div>
+    <span className="hidden sm:block">
+      {online == null ? (
+        <StatusDot tone="neutral" label="checking…" />
+      ) : online ? (
+        <StatusDot tone="success" label="engine online" />
+      ) : (
+        <StatusDot tone="danger" label="engine offline" pulse />
+      )}
+    </span>
+  );
+}
 
-      <div className="ml-auto flex items-center gap-3">
-        <span
-          className={
-            "hidden items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold sm:flex " +
-            (online
-              ? "border-success/30 bg-success/10 text-success"
-              : online === false
-                ? "border-danger/30 bg-danger/10 text-danger"
-                : "border-line bg-panel/60 text-muted")
-          }
+export function Topbar() {
+  return (
+    <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 border-b border-line bg-bg-elev/80 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+      <MobileNav />
+      <Breadcrumbs />
+
+      <div className="ml-auto flex items-center gap-2.5">
+        <button
+          onClick={() => {
+            // synthesize the palette hotkey so there is exactly one open-path
+            window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }));
+          }}
+          className="hidden items-center gap-2 rounded-xl border border-line bg-panel/60 px-3 py-2 text-xs font-medium text-muted transition-colors hover:text-fg-2 md:flex"
+          aria-label="Open command palette"
         >
-          <span
-            className={
-              "h-1.5 w-1.5 rounded-full " +
-              (online ? "bg-success" : online === false ? "bg-danger" : "bg-muted")
-            }
-          />
-          {online ? "engine online" : online === false ? "engine offline" : "checking…"}
-        </span>
+          <Search size={13} />
+          Search
+          <Kbd>Ctrl K</Kbd>
+        </button>
+
+        <EngineStatus />
+
         <Link
-          href="/"
-          className="flex items-center gap-1.5 rounded-xl bg-primary-strong px-3 py-2 text-[12.5px] font-semibold text-white transition-colors hover:bg-primary"
+          href="/?focus=new"
+          className="flex items-center gap-1.5 rounded-xl bg-primary-strong px-3 py-2 text-xs font-semibold text-white shadow-[var(--elev-glow)] transition-colors hover:bg-primary"
         >
           <Sparkles size={14} /> New analysis
         </Link>
-        <button className="grid h-9 w-9 place-items-center rounded-xl border border-line bg-panel/60 text-fg-2 hover:text-fg">
-          <Bell size={16} />
-        </button>
-        <button className="flex items-center gap-2 rounded-xl border border-line bg-panel/60 py-1 pl-1 pr-2">
-          <span className="grid h-7 w-7 place-items-center rounded-lg bg-violet/20 text-[11px] font-bold text-violet">
-            JM
-          </span>
-          <ChevronDown size={14} className="text-muted" />
-        </button>
       </div>
     </header>
   );

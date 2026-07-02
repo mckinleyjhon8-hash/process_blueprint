@@ -1,12 +1,55 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FolderKanban, Loader2, AlertTriangle } from "lucide-react";
-import { getEngagements } from "@/lib/api";
+import Link from "next/link";
+import { FolderKanban, TriangleAlert } from "lucide-react";
+import { getEngagements, type Engagement } from "@/lib/api";
+import { Page, PageHeader } from "@/components/ui/Page";
 import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { DataTable, type Column } from "@/components/ui/DataTable";
+import { EmptyState } from "@/components/ui/EmptyState";
+
+const COLUMNS: Column<Engagement>[] = [
+  {
+    id: "name",
+    header: "Engagement",
+    sortValue: (e) => e.name,
+    cell: (e) => (
+      <span className="flex items-center gap-2 font-semibold text-fg">
+        <FolderKanban size={14} className="shrink-0 text-primary" /> {e.name}
+      </span>
+    ),
+  },
+  {
+    id: "client",
+    header: "Client",
+    sortValue: (e) => e.client_name ?? null,
+    cell: (e) => <span className="text-fg-2">{e.client_name ?? "—"}</span>,
+  },
+  {
+    id: "process",
+    header: "Process",
+    sortValue: (e) => e.process_type ?? null,
+    cell: (e) => <span className="text-fg-2">{e.process_type ?? "—"}</span>,
+  },
+  {
+    id: "status",
+    header: "Status",
+    sortValue: (e) => e.status ?? "active",
+    cell: (e) => <Badge tone={e.status === "closed" ? "neutral" : "success"}>{e.status ?? "active"}</Badge>,
+  },
+  {
+    id: "runs",
+    header: "Runs",
+    align: "right",
+    sortValue: (e) => e.runs ?? 0,
+    cell: (e) => <span className="font-mono font-semibold text-fg">{e.runs ?? 0}</span>,
+  },
+];
 
 export default function EngagementsPage() {
-  const [data, setData] = useState<{ source: string; engagements: any[] } | null>(null);
+  const [data, setData] = useState<{ source: string; engagements: Engagement[] } | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
@@ -14,59 +57,41 @@ export default function EngagementsPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-[1100px] space-y-6">
-      <div className="flex items-end justify-between">
-        <div>
-          <h1 className="text-[22px] font-extrabold tracking-tight text-fg">Engagements</h1>
-          <p className="mt-1 text-[13px] text-muted">Clients and projects, with the number of analysis runs each has.</p>
-        </div>
-        {data && (
-          <span className="rounded-full bg-panel-2/60 px-2.5 py-1 text-[11px] font-semibold text-muted ring-1 ring-inset ring-line">
-            source: {data.source}
-          </span>
-        )}
-      </div>
+    <Page>
+      <PageHeader
+        title="Engagements"
+        description="Clients and projects, with the analysis runs recorded for each."
+        actions={data && <Badge tone="neutral">source: {data.source}</Badge>}
+      />
 
       {err && (
-        <div className="flex items-center gap-2 rounded-xl bg-danger/10 p-3 text-[13px] text-danger ring-1 ring-inset ring-danger/25">
-          <AlertTriangle size={15} /> Backend unreachable ({err}).
+        <div className="flex items-center gap-2 rounded-xl bg-danger/10 p-3 text-sm text-danger ring-1 ring-inset ring-danger/25" role="alert">
+          <TriangleAlert size={15} /> Backend unreachable ({err}).
         </div>
       )}
 
-      <Card className="p-0">
-        {!data && !err ? (
-          <div className="flex items-center gap-2 p-6 text-[13px] text-muted"><Loader2 size={16} className="animate-spin text-primary" /> Loading…</div>
-        ) : data && data.engagements.length ? (
-          <table className="w-full text-[13px]">
-            <thead>
-              <tr className="border-b border-line text-left text-[12px] text-muted">
-                <th className="px-5 py-3 font-medium">Engagement</th>
-                <th className="px-5 py-3 font-medium">Client</th>
-                <th className="px-5 py-3 font-medium">Process</th>
-                <th className="px-5 py-3 font-medium">Status</th>
-                <th className="px-5 py-3 text-right font-medium">Runs</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.engagements.map((e, i) => (
-                <tr key={e.id ?? i} className="border-b border-line-soft last:border-0">
-                  <td className="px-5 py-3 font-semibold text-fg">
-                    <span className="flex items-center gap-2"><FolderKanban size={14} className="text-primary" /> {e.name}</span>
-                  </td>
-                  <td className="px-5 py-3 text-fg-2">{e.client_name ?? "—"}</td>
-                  <td className="px-5 py-3 text-fg-2">{e.process_type ?? "—"}</td>
-                  <td className="px-5 py-3">
-                    <span className="rounded-full bg-success/12 px-2 py-0.5 text-[11px] font-semibold text-success">{e.status ?? "active"}</span>
-                  </td>
-                  <td className="px-5 py-3 text-right font-mono font-semibold text-fg">{e.runs ?? 0}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p className="p-6 text-[13px] text-muted">No engagements yet. Run an analysis on the Dashboard to create one.</p>
-        )}
+      <Card padded={false}>
+        <DataTable
+          columns={COLUMNS}
+          rows={data?.engagements ?? []}
+          rowKey={(e, i) => e.id ?? String(i)}
+          loading={!data && !err}
+          searchPlaceholder="Filter engagements…"
+          searchText={(e) => `${e.name} ${e.client_name ?? ""} ${e.process_type ?? ""}`}
+          empty={
+            <EmptyState
+              icon={<FolderKanban size={22} />}
+              title="No engagements yet"
+              description="Analysing a log creates the client and engagement automatically when Supabase is configured."
+              action={
+                <Link href="/?focus=new" className="text-sm font-semibold text-primary hover:underline">
+                  Start an analysis →
+                </Link>
+              }
+            />
+          }
+        />
       </Card>
-    </div>
+    </Page>
   );
 }

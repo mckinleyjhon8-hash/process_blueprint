@@ -1,28 +1,59 @@
 @import "tailwindcss";
 
-/* ---- Process Blueprint — premium-dark enterprise design system ----
-   Derived from the UI/UX Pro Max enterprise palette (indigo #4F46E5 /
-   violet #7C3AED), adapted to a high-contrast dark command-center. */
+/* =====================================================================
+   Process Blueprint — design tokens (Monday-class light enterprise system)
+   Basis: UI/UX Pro Max colors.csv №21 "Remote Work/Collaboration Tool"
+   (light indigo SaaS, WCAG-adjusted), pushed to a vivid work-OS look:
+   #6161FF primary on #F6F7FB canvas, white surfaces, rainbow status
+   accents. Typeface: Figtree. 8pt spatial grid (Tailwind scale).
+   ===================================================================== */
 @theme {
-  --color-bg: #0a0e17;
-  --color-bg-elev: #0e1320;
-  --color-panel: #111726;
-  --color-panel-2: #161d30;
-  --color-line: #232b40;
-  --color-line-soft: #1a2236;
-  --color-fg: #e8ecf6;
-  --color-fg-2: #b9c2d6;
-  --color-muted: #7a85a0;
-  --color-primary: #6366f1;
-  --color-primary-strong: #4f46e5;
-  --color-violet: #8b5cf6;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-  --color-info: #38bdf8;
+  /* -- surfaces (canvas → raised) -- */
+  --color-bg: #f6f7fb;
+  --color-bg-elev: #ffffff;
+  --color-panel: #ffffff;
+  --color-panel-2: #f1f3f9;
+  --color-line: #e4e7f1;
+  --color-line-soft: #edf0f7;
 
+  /* -- text -- */
+  --color-fg: #323338;
+  --color-fg-2: #55575e;
+  --color-muted: #85878f;
+
+  /* -- brand + semantic (work-OS rainbow) -- */
+  --color-primary: #6161ff;
+  --color-primary-strong: #5151d5;
+  --color-violet: #a25ddc;
+  --color-success: #00a25b;
+  --color-warning: #b45309;
+  --color-danger: #e2445c;
+  --color-info: #1f76d3;
+
+  /* saturated fills for chips/graphics where white text sits on top */
+  --color-success-vivid: #00c875;
+  --color-warning-vivid: #fdab3d;
+  --color-info-vivid: #579bfc;
+
+  /* -- type scale (rem-based; 11 → 24) -- */
+  --text-2xs: 0.6875rem;   /* 11px  captions, table meta       */
+  --text-xs: 0.75rem;      /* 12px  labels, badges             */
+  --text-sm: 0.8125rem;    /* 13px  body                       */
+  --text-base: 0.875rem;   /* 14px  emphasized body, card h2   */
+  --text-lg: 1rem;         /* 16px  section titles             */
+  --text-xl: 1.25rem;      /* 20px  page titles                */
+  --text-2xl: 1.5rem;      /* 24px  hero                       */
+
+  /* -- radius -- */
+  --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 18px;
+
+  /* -- motion -- */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 400ms;
 }
 
 @theme inline {
@@ -31,7 +62,21 @@
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
+  /* elevation (soft, light shadows) */
+  --elev-1: 0 1px 2px rgba(29, 33, 58, 0.04), 0 6px 20px -8px rgba(29, 33, 58, 0.1);
+  --elev-2: 0 2px 4px rgba(29, 33, 58, 0.06), 0 16px 40px -16px rgba(29, 33, 58, 0.18);
+  --elev-glow: 0 6px 16px -6px rgba(97, 97, 255, 0.5);
+
+  /* map-canvas tokens (Map Studio + previews) */
+  --map-canvas: #fbfcfe;
+  --map-dot: #e2e6f2;
+  --map-node-fill: #ffffff;
+  --map-node-fill-active: #eef0ff;
+  --map-node-stroke: #d5d9ea;
+  --map-edge: #b9bfd6;
+  --map-arrow: #9aa1bd;
+  --map-wait-chip: #fff7ea;
 }
 
 html,
@@ -41,27 +86,41 @@ body {
 
 body {
   background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(99, 102, 241, 0.1), transparent 60%),
-    radial-gradient(900px 500px at -10% 10%, rgba(139, 92, 246, 0.08), transparent 55%),
+    radial-gradient(1000px 480px at 85% -12%, rgba(97, 97, 255, 0.07), transparent 60%),
+    radial-gradient(800px 420px at -8% 8%, rgba(162, 93, 220, 0.05), transparent 55%),
     var(--color-bg);
   color: var(--color-fg);
   font-family: var(--font-sans), "Segoe UI", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
+/* ---- accessibility: a single, consistent focus ring everywhere ---- */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: rgba(97, 97, 255, 0.22);
+}
+
+/* ---- scrollbars ---- */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #222a3e;
+  background: #d3d7e6;
   border-radius: 8px;
   border: 2px solid var(--color-bg);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2c3650;
+  background: #bcc1d6;
 }
 
+/* ---- motion primitives ---- */
 @keyframes rise {
   from {
     opacity: 0;
@@ -73,5 +132,59 @@ body {
   }
 }
 .rise {
-  animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: rise var(--duration-slow) var(--ease-out-quint) both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.fade-in {
+  animation: fade-in var(--duration-base) ease-out both;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.pop {
+  animation: pop var(--duration-base) var(--ease-out-quint) both;
+}
+
+/* skeleton shimmer */
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+.skeleton {
+  border-radius: 8px;
+  background: linear-gradient(100deg, #edeff7 40%, #e2e5f0 50%, #edeff7 60%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* ---- reduced motion: collapse all animation to instant ---- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
