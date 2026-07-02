@@ -108,6 +108,10 @@ _Last updated: 2026-06-29 (Phase 4 frontend foundation built & running)_
       #6161FF primary on #F6F7FB canvas, white surfaces, rainbow status accents
       (#00C875/#FDAB3D/#E2445C/#579BFC/#A25DDC), Figtree typeface; map canvas +
       graph re-tokenised for light (`--map-*` vars). Verified live in preview.
+- [x] **Report visuals get full pages**: discovered model on its own print page
+      (Petri net rendered top-to-bottom via `rankdir=TB`, fixed px dims stripped so
+      it scales to page width) + new **activity word map** page (all activities
+      sized by frequency, bottleneck steps amber, top-8 frequency table). 60 tests.
 - [ ] Optional: match a specific Figma frame (needs Dev/Full seat + frame URL)
 
 ## Phase 5 — Hardening

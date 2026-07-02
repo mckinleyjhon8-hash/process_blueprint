@@ -42,9 +42,12 @@ def graphviz_available() -> bool:
 
 
 def render_petri_net(
-    df: pd.DataFrame, algorithm: str = "inductive", fmt: str = "svg"
+    df: pd.DataFrame, algorithm: str = "inductive", fmt: str = "svg", rankdir: str = "LR"
 ) -> Optional[bytes]:
-    """Discover and render a Petri net image; returns image bytes or None."""
+    """Discover and render a Petri net image; returns image bytes or None.
+
+    `rankdir` — "LR" suits interactive panning; "TB" fills a portrait report page.
+    """
     if not graphviz_available():
         return None
     try:
@@ -59,7 +62,7 @@ def render_petri_net(
         tmp = tempfile.NamedTemporaryFile(delete=False, suffix="." + fmt)
         tmp.close()
         try:
-            pm4py.save_vis_petri_net(net, im, fm, tmp.name)
+            pm4py.save_vis_petri_net(net, im, fm, tmp.name, rankdir=rankdir)
             with open(tmp.name, "rb") as fh:
                 return fh.read()
         finally:

@@ -10,9 +10,10 @@ Design choices:
     "Save as PDF" produces a perfect PDF. Zero runtime dependencies.
   * Audience-aware: the client deliverable omits the engine mechanics entirely;
     the internal version keeps conformance detail.
-  * Process visual: a dependency-free SVG flow of the dominant variant with the
-    slowest hand-offs highlighted (used because Graphviz/Petri-net render needs
-    a system binary that may be absent).
+  * Process visuals get full pages of their own (print page-breaks): the
+    discovered model (real Petri net when Graphviz is present, else a
+    dependency-free flow of the dominant variant) scaled to the page width,
+    plus an activity word map sized by frequency.
 """
 
 from __future__ import annotations
@@ -51,7 +52,8 @@ def build_report_html(
         _header(facts, firm, now, is_client),
         _summary_band(facts, score, grade),
         _kpi_cards(facts),
-        _flow_section(facts, process_map_svg),
+        _model_page(facts, process_map_svg),   # full page of its own
+        _wordmap_page(facts),                  # full page of its own
         _brief_section(brief_markdown, is_client),
         _bottlenecks_section(facts),
     ]
@@ -105,15 +107,24 @@ def _kpi_cards(facts: ProcessFacts) -> str:
     return f'<section class="kpis">{items}</section>'
 
 
-def _flow_section(facts: ProcessFacts, process_map_svg: Optional[str] = None) -> str:
+def _model_page(facts: ProcessFacts, process_map_svg: Optional[str] = None) -> str:
+    """The discovered process model on a dedicated, full-width page."""
     if process_map_svg:
-        # Embed the real discovered Petri net (strip any XML prolog/doctype).
+        # Strip any XML prolog/doctype, then remove the root tag's fixed pixel
+        # dimensions so the net scales to the full page (viewBox drives ratio).
         svg = re.sub(r"<\?xml.*?\?>", "", process_map_svg, flags=re.S)
         svg = re.sub(r"<!DOCTYPE.*?>", "", svg, flags=re.S)
+        svg = re.sub(  # drop fixed dims from the ROOT tag only; viewBox keeps the ratio
+            r"<svg\b[^>]*>",
+            lambda m: re.sub(r'\s(?:width|height)="[^"]*"', "", m.group(0)),
+            svg,
+            count=1,
+        )
         return f"""
-<section>
+<section class="sheet">
   <h2>Discovered process model</h2>
-  <p class="muted">The as-is process mined from the event data (Petri net).</p>
+  <p class="muted">The complete as-is process mined from {facts.n_events:,} events (Petri net —
+  boxes are activities, circles are states the case moves through).</p>
   <div class="flow flow-map">{svg}</div>
 </section>"""
     if not facts.top_variants:
@@ -121,10 +132,32 @@ def _flow_section(facts: ProcessFacts, process_map_svg: Optional[str] = None) ->
     svg = _flow_svg(facts)
     pct = round(100 * facts.top_variants[0].frequency / max(facts.n_cases, 1))
     return f"""
-<section>
+<section class="sheet">
   <h2>Primary process flow</h2>
   <p class="muted">The most common path ({pct}% of cases). Amber steps are the slowest hand-offs.</p>
-  <div class="flow">{svg}</div>
+  <div class="flow flow-map">{svg}</div>
+</section>"""
+
+
+def _wordmap_page(facts: ProcessFacts) -> str:
+    """Activity word map on its own page: every activity, sized by frequency."""
+    if not facts.activity_frequencies:
+        return ""
+    svg = _wordmap_svg(facts)
+    rows = sorted(facts.activity_frequencies.items(), key=lambda kv: -kv[1])[:8]
+    tbl = "".join(
+        f"<tr><td>{_e(a)}</td><td class='num'>{n:,}</td>"
+        f"<td class='num'>{round(100 * n / max(facts.n_cases, 1))}%</td></tr>"
+        for a, n in rows
+    )
+    return f"""
+<section class="sheet">
+  <h2>Activity word map</h2>
+  <p class="muted">Every activity observed in the log, sized by how often it runs.
+  Amber activities sit on the slowest hand-offs.</p>
+  <div class="wordmap">{svg}</div>
+  <table class="tbl"><thead><tr><th>Most frequent activities</th><th class="num">Executions</th><th class="num">vs cases</th></tr></thead>
+  <tbody>{tbl}</tbody></table>
 </section>"""
 
 
@@ -261,6 +294,80 @@ def _flow_svg(facts: ProcessFacts) -> str:
 
 
 # --------------------------------------------------------------------------- #
+# Activity word map (dependency-free SVG "word cloud")
+# --------------------------------------------------------------------------- #
+def _wordmap_svg(facts: ProcessFacts, max_words: int = 40) -> str:
+    """Centered line-packed word cloud: font size ~ sqrt(frequency), bottleneck
+    activities in amber, the rest rotating through the brand palette."""
+    import math
+
+    items = sorted(facts.activity_frequencies.items(), key=lambda kv: -kv[1])[:max_words]
+    if not items:
+        return ""
+    hot = {b.source for b in facts.bottlenecks} | {b.target for b in facts.bottlenecks}
+
+    fmax = math.sqrt(items[0][1])
+    fmin = math.sqrt(items[-1][1])
+    span = (fmax - fmin) or 1.0
+
+    def size(freq: int) -> float:
+        return round(15 + (math.sqrt(freq) - fmin) / span * 41, 1)  # 15 → 56 px
+
+    # greedy line packing (largest first), max line width 1080
+    W, GAP = 1080, 26
+    lines: List[List[tuple]] = [[]]
+    widths: List[float] = [0.0]
+    for act, freq in items:
+        s = size(freq)
+        w = 0.58 * s * len(act) + GAP
+        if widths[-1] + w > W and lines[-1]:
+            lines.append([])
+            widths.append(0.0)
+        lines[-1].append((act, freq, s, w))
+        widths[-1] += w
+
+    # biggest lines in the vertical middle (center-out ordering)
+    order = sorted(range(len(lines)), key=lambda i: -max(e[2] for e in lines[i]))
+    placed: List[Optional[int]] = [None] * len(lines)
+    mid = (len(lines) - 1) // 2
+    offsets = [0]
+    for d in range(1, len(lines)):
+        offsets += [d, -d]
+    slots = [mid + o for o in offsets if 0 <= mid + o < len(lines)][: len(lines)]
+    for rank, slot in zip(order, slots):
+        placed[slot] = rank
+
+    palette = ["#4f46e5", "#7c3aed", "#1d4ed8", "#0f766e"]
+    parts: List[str] = []
+    y = 18.0
+    color_i = 0
+    for slot in range(len(lines)):
+        line = lines[placed[slot]]  # type: ignore[index]
+        line_h = max(e[2] for e in line) * 1.3
+        x = (W - sum(e[3] for e in line)) / 2 + GAP / 2
+        baseline = y + line_h * 0.78
+        for act, freq, s, w in line:
+            if act in hot:
+                color = "#b45309"
+            else:
+                color = palette[color_i % len(palette)]
+                color_i += 1
+            label = _e(act if len(act) <= 30 else act[:29] + "…")
+            parts.append(
+                f'<g><title>{label} — {freq:,}×</title>'
+                f'<text x="{x:.0f}" y="{baseline:.0f}" font-size="{s}" font-weight="700" '
+                f'fill="{color}" font-family="Plus Jakarta Sans, sans-serif">{label}</text></g>'
+            )
+            x += w
+        y += line_h
+    height = int(y + 18)
+    return (
+        f'<svg viewBox="0 0 {W} {height}" width="100%" xmlns="http://www.w3.org/2000/svg" '
+        f'role="img" aria-label="Activity word map">{"".join(parts)}</svg>'
+    )
+
+
+# --------------------------------------------------------------------------- #
 # tiny markdown -> html (headings, bold, lists, tables, hr, paragraphs)
 # --------------------------------------------------------------------------- #
 def _inline(t: str) -> str:
@@ -372,8 +479,10 @@ p{margin:6px 0;font-size:13.5px}
 .kpi-v{font-weight:800;font-size:22px;font-family:'JetBrains Mono',monospace}
 .kpi-l{color:var(--muted);font-size:12px;margin-top:2px}
 .flow{margin-top:10px;background:#fbfcff;border:1px solid var(--line);border-radius:14px;padding:16px}
-.flow-map{overflow:auto}
-.flow-map svg{max-width:100%;height:auto}
+.flow-map svg{width:100%;height:auto;display:block}
+.sheet{padding-top:26px;padding-bottom:26px;border-top:1px solid var(--line)}
+.wordmap{margin:14px 0 6px;background:#fbfcff;border:1px solid var(--line);border-radius:14px;padding:22px 14px}
+.wordmap svg{width:100%;height:auto;display:block}
 .tbl{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
 .tbl th{text-align:left;color:var(--muted);font-weight:600;border-bottom:1px solid var(--line);padding:7px 8px;font-size:12px}
 .tbl td{border-bottom:1px solid #f1f5f9;padding:7px 8px}
@@ -384,7 +493,12 @@ p{margin:6px 0;font-size:13.5px}
 .brief h2{border-top:1px solid var(--line);padding-top:14px}
 .internal{background:#fafafa}
 footer{padding:18px 40px 26px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-weight:600}
-@media print{body{background:#fff}.page{box-shadow:none;border:none;margin:0;border-radius:0}section{break-inside:avoid}}
+@media print{
+  body{background:#fff}
+  .page{box-shadow:none;border:none;margin:0;border-radius:0}
+  section{break-inside:avoid}
+  .sheet{break-before:page;break-inside:auto;border-top:none}
+}
 """
 
 _DOCUMENT = """<!DOCTYPE html>

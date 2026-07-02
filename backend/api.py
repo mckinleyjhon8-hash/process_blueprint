@@ -303,10 +303,12 @@ def report(run_id: str, audience: str = "client", download: int = 0):
     compliance = _COMPLIANCE.get(run_id)
 
     # Real Petri net for in-session runs (we have the log cached); else the flow SVG.
+    # Top-to-bottom orientation fills the report's portrait page instead of
+    # shrinking a very wide left-to-right net.
     map_svg = None
     df = _DFS.get(run_id)
     if df is not None:
-        raw = render_petri_net(df, fmt="svg")
+        raw = render_petri_net(df, fmt="svg", rankdir="TB")
         if raw:
             map_svg = raw.decode("utf-8", "replace")
 

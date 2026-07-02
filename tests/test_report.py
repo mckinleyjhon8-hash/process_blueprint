@@ -56,3 +56,24 @@ def test_report_embeds_real_process_map(sample_facts):
     assert "Discovered process model" in html
     assert 'id="petri"' in html
     assert "<?xml" not in html  # prolog stripped before embedding
+
+
+def test_model_gets_its_own_page_and_scales(sample_facts):
+    """The map lives on a dedicated .sheet page and fixed px dims are stripped."""
+    fake_svg = '<svg width="4200pt" height="300pt" viewBox="0 0 4200 300" id="petri"><rect/></svg>'
+    html = build_report_html(sample_facts, _BRIEF, audience="client", process_map_svg=fake_svg)
+    assert '<section class="sheet">' in html
+    assert 'width="4200pt"' not in html and 'height="300pt"' not in html
+    assert 'viewBox="0 0 4200 300"' in html  # ratio preserved, size page-driven
+    # the variant-flow fallback is also a full page
+    html2 = build_report_html(sample_facts, _BRIEF, audience="client")
+    assert "Primary process flow" in html2 and '<section class="sheet">' in html2
+
+
+def test_wordmap_page_renders_all_activities(sample_facts):
+    html = build_report_html(sample_facts, _BRIEF, audience="client")
+    assert "Activity word map" in html
+    assert 'aria-label="Activity word map"' in html
+    for activity in sample_facts.activity_frequencies:
+        assert activity in html
+    assert "Most frequent activities" in html
