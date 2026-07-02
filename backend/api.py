@@ -57,6 +57,7 @@ _RUNS: Dict[str, ProcessFacts] = {}
 _BRIEFS: Dict[tuple, Any] = {}        # (run_id, audience) -> BriefResult
 _COMPLIANCE: Dict[str, Any] = {}      # run_id -> SOP compliance report
 _DFS: Dict[str, Any] = {}             # run_id -> event-log DataFrame (for process-map render)
+_DISCOVERY: Dict[str, Dict[str, bool]] = {}  # run_id -> operator checklist answers
 
 _PROVIDER_KEY = {
     "anthropic": "ANTHROPIC_API_KEY",
@@ -277,6 +278,49 @@ def run_detail(run_id: str) -> Dict[str, Any]:
     # The Petri net can only render while the log is cached this session.
     payload["has_map"] = run_id in _DFS and graphviz_available()
     return payload
+
+
+class DiscoveryAnswers(BaseModel):
+    answers: Dict[str, bool]
+
+
+@app.get("/api/discovery/{run_id}")
+def discovery_get(run_id: str) -> Dict[str, Any]:
+    """Current discovery-completeness scoring (auto + operator answers)."""
+    facts = _facts_for_run(run_id)
+    if facts is None:
+        raise HTTPException(status_code=404, detail="Unknown run_id.")
+    from process_blueprint.discovery_completeness import compute
+
+    report = compute(
+        facts,
+        manual_answers=_DISCOVERY.get(run_id, {}),
+        has_sop_rules=run_id in _COMPLIANCE,
+    )
+    report["answers"] = _DISCOVERY.get(run_id, {})
+    return report
+
+
+@app.post("/api/discovery/{run_id}")
+def discovery_post(run_id: str, req: DiscoveryAnswers) -> Dict[str, Any]:
+    """Merge operator checklist answers and rescore the six domains."""
+    facts = _facts_for_run(run_id)
+    if facts is None:
+        raise HTTPException(status_code=404, detail="Unknown run_id.")
+    merged = {**_DISCOVERY.get(run_id, {}), **req.answers}
+    _DISCOVERY[run_id] = {k: v for k, v in merged.items() if v}  # keep only asserted
+    from process_blueprint.discovery_completeness import compute
+
+    report = compute(
+        facts,
+        manual_answers=_DISCOVERY[run_id],
+        has_sop_rules=run_id in _COMPLIANCE,
+    )
+    report["answers"] = _DISCOVERY[run_id]
+    # keep the in-session facts in sync so reports/briefs see the latest score
+    if run_id in _RUNS:
+        _RUNS[run_id].discovery = {k: v for k, v in report.items() if k != "answers"}
+    return report
 
 
 @app.get("/api/process-map/{run_id}")

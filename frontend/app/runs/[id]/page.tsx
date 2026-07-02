@@ -3,6 +3,7 @@
 import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
+  ClipboardCheck,
   Expand,
   FileText,
   Gauge,
@@ -31,6 +32,8 @@ import { Bottlenecks } from "@/components/dashboard/Bottlenecks";
 import { Variants } from "@/components/dashboard/Variants";
 import { Compliance } from "@/components/dashboard/Compliance";
 import { BriefPanel } from "@/components/dashboard/BriefPanel";
+import { DiscoveryPanel } from "@/components/dashboard/DiscoveryPanel";
+import { BenchmarkCard } from "@/components/dashboard/BenchmarkCard";
 import { ProcessCanvas } from "@/components/map/ProcessCanvas";
 import { DependencyGraph } from "@/components/map/DependencyGraph";
 
@@ -118,6 +121,24 @@ export default function RunPage({ params }: { params: Promise<{ id: string }> })
       <Tabs
         tabs={[
           { id: "overview", label: "Overview", icon: <Gauge size={14} /> },
+          {
+            id: "discovery",
+            label: "Discovery",
+            icon: <ClipboardCheck size={14} />,
+            badge: facts.discovery ? (
+              <Badge
+                tone={
+                  facts.discovery.roi_gate === "pass"
+                    ? "success"
+                    : facts.discovery.roi_gate === "caveated"
+                      ? "warning"
+                      : "danger"
+                }
+              >
+                {Math.round(facts.discovery.overall)}
+              </Badge>
+            ) : undefined,
+          },
           { id: "map", label: "Process map", icon: <Map size={14} /> },
           {
             id: "compliance",
@@ -154,10 +175,25 @@ export default function RunPage({ params }: { params: Promise<{ id: string }> })
               )}
             </Card>
           </div>
+          <BenchmarkCard facts={facts} />
           <Card title="Workflow variants" subtitle="How cases actually flow through the process">
             <Variants items={facts.top_variants} total={facts.n_cases} />
           </Card>
         </div>
+      )}
+
+      {tab === "discovery" && (
+        facts.discovery ? (
+          <DiscoveryPanel runId={isSeed ? undefined : id} initial={facts.discovery} />
+        ) : (
+          <Card padded={false}>
+            <EmptyState
+              icon={<ClipboardCheck size={22} />}
+              title="No discovery scoring for this run"
+              description="Runs analysed before schema v1.1 don't carry completeness scoring — re-run the analysis to generate it."
+            />
+          </Card>
+        )
       )}
 
       {tab === "map" && (

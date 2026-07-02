@@ -48,4 +48,4 @@ def test_cycle_time_realistic(enterprise_facts):
 def test_facts_serialisable(enterprise_facts):
     _, facts = enterprise_facts
     payload = facts.to_json()
-    assert '"schema_version": "1.0"' in payload
+    assert '"schema_version": "1.1"' in payload

@@ -114,6 +114,27 @@ _Last updated: 2026-06-29 (Phase 4 frontend foundation built & running)_
       sized by frequency, bottleneck steps amber, top-8 frequency table). 60 tests.
 - [ ] Optional: match a specific Figma frame (needs Dev/Full seat + frame URL)
 
+## Elite program (docs/ELITE_ROADMAP.md) — Phase E1: Discovery
+- [x] **pm4py activation** (`insights.py`): performance DFG (freq + mean/median/stdev
+      wait per edge), case-duration percentiles P10/P50/P90 + heavy-tail ratio,
+      top-variant/top-5 coverage + honest exception rate, FPY/rework-case-rate,
+      resource analytics from org:resource (roles, hand-overs, SPOF), batch
+      detection (best-effort). ProcessFacts **v1.1** (additive; jsonb-roundtrip safe).
+- [x] **Benchmark engine** (`benchmarks.py`): seeded UK SME quartile tables
+      (AP/O2C/onboarding/support/payroll/recruitment + generic VSM), direction-aware
+      quartile positioning, ambition-ladder targets (Q1→median … Q4→hold),
+      plausibility thresholds + zero-claims rule; every position cites source+grade.
+- [x] **Discovery completeness** (`discovery_completeness.py`): six playbook domains
+      point-scored with Must/Should/Complete gates; the event log auto-evidences
+      items at E1 (freight: Process domain 95 from upload alone); operator confirms
+      the rest via guided questions; overall formula + ROI gate (blocked/caveated/pass).
+- [x] **API + UI**: GET/POST `/api/discovery/{run_id}`; run-workspace **Discovery tab**
+      (score badge, gate banner, six domain cards with live checklist, follow-up
+      questions) + **Benchmark position card** on Overview. Verified live: freight run
+      14.3/blocked → 10 answers → 71.3/pass; UI toggle rescores instantly. 71 tests.
+- [ ] E2 Redesign: H1–H12 heuristic engine → computed TO-BE deltas, ECRS gates
+- [ ] E3 AI-Risk · E4 ROI · E5 Consultant-OS gates · E6 knowledge depth · E7 compliance breadth
+
 ## Phase 5 — Hardening
 - [ ] Internal auth + engagement workspaces
 - [ ] Deployment + audit trail

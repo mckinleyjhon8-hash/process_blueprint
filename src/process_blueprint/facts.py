@@ -19,7 +19,8 @@ import datetime as _dt
 from dataclasses import dataclass, field, asdict
 from typing import Any, Dict, List, Optional, Tuple
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"  # 1.1: flow / time_profile / resources / batching /
+                        #      benchmarks / provenance / discovery (all additive)
 
 
 @dataclass
@@ -90,6 +91,15 @@ class ProcessFacts:
     top_variants: List[Variant] = field(default_factory=list)
     rework_activities: Dict[str, int] = field(default_factory=dict)
 
+    # --- v1.1 insight layers (plain dicts/lists: JSON-shaped by construction) ---
+    flow: Dict[str, Any] = field(default_factory=dict)          # performance DFG
+    time_profile: Dict[str, Any] = field(default_factory=dict)  # percentiles, coverage
+    resources: Dict[str, Any] = field(default_factory=dict)     # roles, handovers, SPOF
+    batching: List[Dict[str, Any]] = field(default_factory=list)
+    benchmarks: Dict[str, Any] = field(default_factory=dict)    # quartile positions
+    provenance: Dict[str, str] = field(default_factory=dict)    # metric -> evidence grade
+    discovery: Dict[str, Any] = field(default_factory=dict)     # completeness scoring
+
     # --- provenance ---
     schema_version: str = SCHEMA_VERSION
     generated_at: str = field(
@@ -149,6 +159,13 @@ class ProcessFacts:
             bottlenecks=bottlenecks,
             top_variants=variants,
             rework_activities=d.get("rework_activities", {}),
+            flow=d.get("flow", {}),
+            time_profile=d.get("time_profile", {}),
+            resources=d.get("resources", {}),
+            batching=d.get("batching", []),
+            benchmarks=d.get("benchmarks", {}),
+            provenance=d.get("provenance", {}),
+            discovery=d.get("discovery", {}),
             schema_version=d.get("schema_version", SCHEMA_VERSION),
             generated_at=d.get("generated_at", ""),
             notifications=d.get("notifications", []),

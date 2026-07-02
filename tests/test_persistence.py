@@ -19,7 +19,7 @@ def test_facts_row_shape_and_jsonb(sample_df):
     facts = analyze_dataframe(sample_df, process_type="Procure-to-Pay")
     row = facts_row(facts, run_id="run-456")
     assert row["run_id"] == "run-456"
-    assert row["schema_version"] == "1.0"
+    assert row["schema_version"] == "1.1"
     assert row["n_variants"] == 3
     # queryable columns mirror the model metrics
     assert row["model_fitness"] == facts.model.fitness

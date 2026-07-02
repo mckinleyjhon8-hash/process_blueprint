@@ -54,7 +54,7 @@ def test_facts_json_roundtrip(sample_df):
     facts = analyze_dataframe(sample_df)
     payload = facts.to_json()
     parsed = json.loads(payload)
-    assert parsed["schema_version"] == "1.0"
+    assert parsed["schema_version"] == "1.1"
     assert parsed["n_cases"] == 60
     assert isinstance(parsed["top_variants"], list)
     assert isinstance(parsed["top_variants"][0]["sequence"], list)

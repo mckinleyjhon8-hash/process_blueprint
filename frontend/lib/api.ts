@@ -101,6 +101,22 @@ export const getEngagements = () =>
 export const getRuns = () => getJSON<{ source: string; runs: RunSummary[] }>("/api/runs");
 export const getRun = (runId: string) =>
   getJSON<ProcessFacts & { has_map?: boolean }>(`/api/run/${runId}`);
+
+export const getDiscovery = (runId: string) =>
+  getJSON<import("./types").DiscoveryReport>(`/api/discovery/${runId}`);
+
+export async function postDiscovery(
+  runId: string,
+  answers: Record<string, boolean>,
+): Promise<import("./types").DiscoveryReport> {
+  const r = await fetch(`${BASE}/api/discovery/${runId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ answers }),
+  });
+  if (!r.ok) throw new Error(await detail(r));
+  return r.json();
+}
 export const getKnowledge = () =>
   getJSON<{
     configured: boolean;

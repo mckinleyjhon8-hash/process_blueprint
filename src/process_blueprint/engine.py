@@ -16,7 +16,8 @@ from typing import Dict, List, Optional
 
 import pandas as pd
 
-from . import conformance, discovery, performance
+from . import benchmarks as bench
+from . import conformance, discovery, discovery_completeness, insights, performance
 from .facts import ModelQuality, ProcessFacts
 from .ingest import ingest, IngestError
 
@@ -68,7 +69,13 @@ def analyze_dataframe(
         f"{len(rework)} rework activities."
     )
 
-    return ProcessFacts(
+    # --- v1.1 insight layers: performance DFG, percentiles, people, batching ---
+    flow, time_profile, resources, batching, ins_notes = insights.compute_all(
+        df, kpis["n_cases"]
+    )
+    notifications += ins_notes
+
+    facts = ProcessFacts(
         process_type=process_type,
         source_file="<dataframe>",
         n_events=kpis["n_events"],
@@ -84,5 +91,21 @@ def analyze_dataframe(
         bottlenecks=bottlenecks,
         top_variants=top_variants,
         rework_activities=rework,
+        flow=flow,
+        time_profile=time_profile,
+        resources=resources,
+        batching=batching,
         notifications=notifications,
     )
+
+    # Every log-derived figure is measured evidence (discovery playbook E1).
+    facts.provenance = {
+        k: "measured"
+        for k in (
+            "lead_time_days", "fpy_pct", "rework_rate_pct", "exception_rate_pct",
+            "heavy_tail_ratio", "n_cases", "n_events", "n_variants",
+        )
+    }
+    facts.benchmarks = bench.apply_benchmarks(facts)
+    facts.discovery = discovery_completeness.compute(facts)
+    return facts
