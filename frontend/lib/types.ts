@@ -103,10 +103,52 @@ export interface DiscoveryReport {
   answers?: Record<string, boolean>;
 }
 
+export interface RedesignDelta {
+  metric: string;
+  scope: string;
+  baseline: number;
+  unit: string;
+  reduction_pct_range: [number, number];
+  to_be_range: [number, number];
+  note?: string;
+}
+
+export interface RedesignRec {
+  heuristic: string;
+  name: string;
+  disposition: "Eliminate" | "Simplify" | "Standardise" | "Automate" | "Augment_AI";
+  annotation: string;
+  targets: string[];
+  trigger_evidence: string;
+  move: string;
+  precondition: string;
+  phase: 0 | 1 | 2 | 3;
+  delta?: RedesignDelta | Record<string, never>;
+  quadrangle?: Record<string, string>;
+  provenance: string;
+  source: string;
+  gated_by: string[];
+  blockers?: string[];
+}
+
+export interface RedesignReport {
+  sequence: string[];
+  recommendations: RedesignRec[];
+  n_recommendations: number;
+  aggregate: {
+    lead_time_reduction_seconds_range: [number, number];
+    baseline_lead_time_seconds: number;
+    realisation_phasing: Record<string, string>;
+    cap_note: string | null;
+  };
+  principle: string;
+}
+
 export interface ProcessFacts {
   process_type: string;
   source_file: string;
   compliance?: ComplianceReport;
+  redesign?: RedesignReport;
   flow?: { n_edges: number; edges: FlowEdge[] };
   time_profile?: Partial<TimeProfile>;
   resources?: {

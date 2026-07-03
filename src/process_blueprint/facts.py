@@ -99,6 +99,7 @@ class ProcessFacts:
     benchmarks: Dict[str, Any] = field(default_factory=dict)    # quartile positions
     provenance: Dict[str, str] = field(default_factory=dict)    # metric -> evidence grade
     discovery: Dict[str, Any] = field(default_factory=dict)     # completeness scoring
+    redesign: Dict[str, Any] = field(default_factory=dict)      # H1–H12 recommendations
 
     # --- provenance ---
     schema_version: str = SCHEMA_VERSION
@@ -166,6 +167,7 @@ class ProcessFacts:
             benchmarks=d.get("benchmarks", {}),
             provenance=d.get("provenance", {}),
             discovery=d.get("discovery", {}),
+            redesign=d.get("redesign", {}),
             schema_version=d.get("schema_version", SCHEMA_VERSION),
             generated_at=d.get("generated_at", ""),
             notifications=d.get("notifications", []),

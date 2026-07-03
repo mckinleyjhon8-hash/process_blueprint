@@ -132,7 +132,17 @@ _Last updated: 2026-06-29 (Phase 4 frontend foundation built & running)_
       (score badge, gate banner, six domain cards with live checklist, follow-up
       questions) + **Benchmark position card** on Overview. Verified live: freight run
       14.3/blocked → 10 answers → 71.3/pass; UI toggle rescores instantly. 71 tests.
-- [ ] E2 Redesign: H1–H12 heuristic engine → computed TO-BE deltas, ECRS gates
+- [x] **E2 Redesign engine** (`redesign.py`): deterministic trigger detectors over the
+      mined facts — SPOF→Standard-Work (P0), batching→H6 Batch-to-Flow, rework→H8
+      Poka-Yoke + H11 Control-Relocation (fail-fast), exception-rate→H4 Triage,
+      both-orders-observed pairs→H5 Parallelism (the log proves independence),
+      mean≫median queue tails→H7 Pull/WIP-limits, happy-path volume→H9 Automation.
+      Every rec: measured trigger evidence (E1) → cited heuristic range → computed
+      TO-BE delta; preconditions (hidden controls/SoD/EBQ) + Devil's-Quadrangle;
+      **ECRS hard gate** (Automate blocked behind open E/S/S recs) + volume/exception
+      blockers; aggregate opportunity capped at the benchmark gap (§6.3) with
+      realisation phasing. Run-workspace **Redesign tab** (phase-grouped cards).
+      Live: freight → 8 recs, automation gated by 7 E/S/S + 2 blockers. 78 tests.
 - [ ] E3 AI-Risk · E4 ROI · E5 Consultant-OS gates · E6 knowledge depth · E7 compliance breadth
 
 ## Phase 5 — Hardening

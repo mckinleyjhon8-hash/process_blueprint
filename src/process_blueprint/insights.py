@@ -80,7 +80,13 @@ def compute_time_profile(
             df.groupby(CASE)[ACT].apply(lambda s: s.duplicated().any()).sum()
         )
         rework_case_rate = 100.0 * float(rework_cases) / max(n_cases, 1)
+        # observed volume rate (redesign heuristics need volume/month)
+        span_days = max(
+            (df[TS].max() - df[TS].min()).total_seconds() / 86400.0, 1.0
+        )
         return {
+            "span_days": round(span_days, 1),
+            "volume_per_month": round(n_cases / span_days * 30.44, 1),
             "rework_case_rate_pct": round(rework_case_rate, 1),
             "fpy_pct": round(100.0 - rework_case_rate, 1),  # right-first-time proxy
             "p10_seconds": round(p10, 2),

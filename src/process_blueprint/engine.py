@@ -18,6 +18,7 @@ import pandas as pd
 
 from . import benchmarks as bench
 from . import conformance, discovery, discovery_completeness, insights, performance
+from . import redesign as redesign_engine
 from .facts import ModelQuality, ProcessFacts
 from .ingest import ingest, IngestError
 
@@ -108,4 +109,5 @@ def analyze_dataframe(
     }
     facts.benchmarks = bench.apply_benchmarks(facts)
     facts.discovery = discovery_completeness.compute(facts)
+    facts.redesign = redesign_engine.generate(facts)
     return facts

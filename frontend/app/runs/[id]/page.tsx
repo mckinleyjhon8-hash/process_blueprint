@@ -9,6 +9,7 @@ import {
   Gauge,
   Loader2,
   Map,
+  Route,
   ShieldAlert,
   Sparkles,
   TriangleAlert,
@@ -34,6 +35,7 @@ import { Compliance } from "@/components/dashboard/Compliance";
 import { BriefPanel } from "@/components/dashboard/BriefPanel";
 import { DiscoveryPanel } from "@/components/dashboard/DiscoveryPanel";
 import { BenchmarkCard } from "@/components/dashboard/BenchmarkCard";
+import { RedesignPanel } from "@/components/dashboard/RedesignPanel";
 import { ProcessCanvas } from "@/components/map/ProcessCanvas";
 import { DependencyGraph } from "@/components/map/DependencyGraph";
 
@@ -139,6 +141,14 @@ export default function RunPage({ params }: { params: Promise<{ id: string }> })
               </Badge>
             ) : undefined,
           },
+          {
+            id: "redesign",
+            label: "Redesign",
+            icon: <Route size={14} />,
+            badge: facts.redesign?.n_recommendations ? (
+              <Badge tone="primary">{facts.redesign.n_recommendations}</Badge>
+            ) : undefined,
+          },
           { id: "map", label: "Process map", icon: <Map size={14} /> },
           {
             id: "compliance",
@@ -195,6 +205,8 @@ export default function RunPage({ params }: { params: Promise<{ id: string }> })
           </Card>
         )
       )}
+
+      {tab === "redesign" && <RedesignPanel facts={facts} />}
 
       {tab === "map" && (
         <Card padded={false} className="overflow-hidden">
