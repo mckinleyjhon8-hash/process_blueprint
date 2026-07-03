@@ -35,6 +35,10 @@ _U = "higher"  # higher is better
 FAMILIES: Dict[str, Dict[str, Any]] = {
     "accounts_payable": {
         "label": "Accounts Payable / Procure-to-Pay",
+        # Verified framework codes (apqc_scor_framework_reference v3.0, 2026-07-02):
+        # PCF v8.0 moved AP under 9.0 Manage Financial Resources.
+        "framework": {"apqc_pcf_v8": "9.5 Manage AP and expense reimbursements",
+                      "scor_v14": "S1.5 Authorize Supplier Payment"},
         "aliases": ["accounts payable", "procure-to-pay", "procure to pay", "p2p",
                     "purchase-to-pay", "invoice processing", "invoice"],
         "metrics": {
@@ -50,19 +54,23 @@ FAMILIES: Dict[str, Dict[str, Any]] = {
     },
     "order_fulfilment": {
         "label": "Order Fulfilment / Order-to-Cash",
+        "framework": {"apqc_pcf_v8": "4.4.3 Operate warehousing (pick/pack/ship)",
+                      "scor_v14": "F1 Fulfill Stocked Product"},
         "aliases": ["order fulfilment", "order fulfillment", "order-to-cash", "order to cash",
                     "o2c", "fulfilment", "fulfillment"],
         "metrics": {
             "lead_time_days": {"p25": 7, "median": 4, "p75": 2, "top": 1, "direction": _D,
-                               "unit": "days", "source": "SCOR DS 2.0 2023", "grade": "B+"},
+                               "unit": "days", "source": "SCOR v14.0 (ASCM 2025)", "grade": "B+"},
             "fpy_pct": {"p25": 88, "median": 94, "p75": 97, "top": 99.5, "direction": _U,
-                        "unit": "%", "source": "SCOR DS 2.0 2023", "grade": "B+"},
+                        "unit": "%", "source": "SCOR v14.0 (ASCM 2025)", "grade": "B+"},
             "exception_rate_pct": {"p25": 15, "median": 8, "p75": 4, "top": 1.5, "direction": _D,
-                                   "unit": "%", "source": "SCOR/APQC 2023", "grade": "B"},
+                                   "unit": "%", "source": "SCOR v14.0 / APQC 2023", "grade": "B"},
         },
     },
     "customer_onboarding": {
         "label": "Customer Onboarding",
+        "framework": {"apqc_pcf_v8": "3.5.2 Manage customers and accounts",
+                      "scor_v14": None},
         "aliases": ["customer onboarding", "onboarding", "client onboarding", "kyc"],
         "metrics": {
             "lead_time_days": {"p25": 10, "median": 5, "p75": 2, "top": 0.5, "direction": _D,
@@ -75,6 +83,8 @@ FAMILIES: Dict[str, Dict[str, Any]] = {
     },
     "customer_support": {
         "label": "Customer Support / Issue Resolution",
+        "framework": {"apqc_pcf_v8": "6.2.2 Manage customer service problems, requests, and inquiries",
+                      "scor_v14": None},
         "aliases": ["customer support", "customer service", "issue resolution", "ticketing",
                     "support", "helpdesk", "service desk"],
         "metrics": {
@@ -84,6 +94,8 @@ FAMILIES: Dict[str, Dict[str, Any]] = {
     },
     "payroll": {
         "label": "Payroll Processing",
+        # PCF v8.0 moved payroll under 7.0 HR (was grouped with Finance in v7)
+        "framework": {"apqc_pcf_v8": "7.5.4 Administer Payroll", "scor_v14": None},
         "aliases": ["payroll"],
         "metrics": {
             "fpy_pct": {"p25": 90, "median": 96, "p75": 99, "top": 99.8, "direction": _U,
@@ -94,6 +106,7 @@ FAMILIES: Dict[str, Dict[str, Any]] = {
     },
     "recruitment": {
         "label": "Recruitment & Hiring",
+        "framework": {"apqc_pcf_v8": "7.2.2 Recruit/Source candidates", "scor_v14": None},
         "aliases": ["recruitment", "hiring", "talent acquisition"],
         "metrics": {
             "lead_time_days": {"p25": 45, "median": 30, "p75": 18, "top": 10, "direction": _D,
@@ -105,6 +118,7 @@ FAMILIES: Dict[str, Dict[str, Any]] = {
     # Fallback: generic SME transactional-process thresholds (KB §2.1–2.3 VSM ranges)
     "generic": {
         "label": "Generic SME transactional process",
+        "framework": {"apqc_pcf_v8": None, "scor_v14": None},
         "aliases": [],
         "metrics": {
             "rework_rate_pct": {"p25": 8, "median": 5, "p75": 2, "top": 1, "direction": _D,
@@ -236,6 +250,8 @@ def apply_benchmarks(facts: ProcessFacts) -> Dict[str, Any]:
     return {
         "family": family,
         "family_label": spec["label"],
+        # verified taxonomy codes (PCF v8.0 2026-02-25 · SCOR v14.0 ASCM 2025)
+        "framework": spec.get("framework", {}),
         "baseline": "UK SME (10–250 staff)",
         "principle": "benchmark as evidence, not truth — ranges, not targets",
         "positions": positions,

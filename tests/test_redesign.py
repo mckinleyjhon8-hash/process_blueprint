@@ -64,7 +64,8 @@ def test_aggregate_capped_and_phased(sample_facts):
     lo, hi = agg["lead_time_reduction_seconds_range"]
     assert 0 <= lo <= hi
     assert hi <= sample_facts.avg_cycle_time_seconds  # can never exceed baseline
-    assert agg["realisation_phasing"]["Y1"] == "50–70%"
+    # research-calibrated conservative floor (roi_investment_research_reference)
+    assert agg["realisation_phasing"]["Y1"] == "40–70%"
 
 
 def test_redesign_survives_roundtrip(sample_facts):

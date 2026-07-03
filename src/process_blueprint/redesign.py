@@ -389,7 +389,9 @@ def generate(facts: ProcessFacts) -> Dict[str, Any]:
         "aggregate": {
             "lead_time_reduction_seconds_range": [round(total_lo, 1), round(total_hi, 1)],
             "baseline_lead_time_seconds": facts.avg_cycle_time_seconds,
-            "realisation_phasing": {"Y1": "50–70%", "Y2": "70–90%", "Y3": "90–100%"},
+            # research-calibrated floor (roi_investment_research_reference 2026-07-02):
+            # enterprise-skewed data says Y1 ~50-60% for RPA; SMEs ramp slower → 40% floor
+            "realisation_phasing": {"Y1": "40–70%", "Y2": "70–90%", "Y3": "90–100%"},
             "cap_note": cap_note,
         },
         "principle": "Never pave the cow-path: Eliminate → Simplify → Standardise "

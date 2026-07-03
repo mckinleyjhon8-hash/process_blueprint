@@ -161,6 +161,7 @@ export interface ProcessFacts {
   benchmarks?: {
     family: string;
     family_label: string;
+    framework?: { apqc_pcf_v8: string | null; scor_v14: string | null };
     baseline: string;
     principle: string;
     positions: BenchmarkPosition[];

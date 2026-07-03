@@ -58,6 +58,9 @@ def test_family_matching():
 def test_benchmark_positions_have_quartiles_and_sources(sample_facts):
     b = sample_facts.benchmarks
     assert b["family"] == "accounts_payable"
+    # verified taxonomy tagging (PCF v8.0: AP under 9.0 Manage Financial Resources)
+    assert b["framework"]["apqc_pcf_v8"].startswith("9.5")
+    assert b["framework"]["scor_v14"].startswith("S1.5")
     by_metric = {p["metric"]: p for p in b["positions"]}
     lead = by_metric["lead_time_days"]
     # P2P sample avg ~2.5 days beats the 2.5-day top-quartile edge → Q4

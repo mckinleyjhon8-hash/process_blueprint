@@ -25,6 +25,18 @@ export function BenchmarkCard({ facts }: { facts: ProcessFacts }) {
     <Card
       title="Benchmark position"
       subtitle={`${b.family_label} · ${b.baseline} · measured (E1) vs peer quartiles`}
+      action={
+        (b.framework?.apqc_pcf_v8 || b.framework?.scor_v14) ? (
+          <span className="flex flex-wrap justify-end gap-1">
+            {b.framework.apqc_pcf_v8 && (
+              <Badge tone="violet" className="font-mono">APQC v8 · {b.framework.apqc_pcf_v8.split(" ")[0]}</Badge>
+            )}
+            {b.framework.scor_v14 && (
+              <Badge tone="info" className="font-mono">SCOR v14 · {b.framework.scor_v14.split(" ")[0]}</Badge>
+            )}
+          </span>
+        ) : undefined
+      }
     >
       <ul className="divide-y divide-line-soft">
         {b.positions.map((p) => (
