@@ -144,11 +144,75 @@ export interface RedesignReport {
   principle: string;
 }
 
+export interface AiReadinessDim {
+  score: number;
+  basis: "auto" | "assumed" | "operator";
+  note: string;
+}
+
+export interface AiAssessment {
+  jurisdiction: string;
+  targets: string[];
+  decision: {
+    route: "Automate_Rules" | "Augment_AI" | "Keep_Manual" | "Defer" | "Pending";
+    pattern: string | null;
+    trace: string[];
+    open_questions: string[];
+  };
+  data_readiness: {
+    dimensions: Record<string, AiReadinessDim>;
+    gate_by_pattern: Record<string, string>;
+    for_route: {
+      total: number;
+      minimum: number | null;
+      critical?: string[];
+      failing: string[];
+      gate: string;
+      precursors?: string[];
+    } | null;
+  };
+  hitl: {
+    pattern: string;
+    auto_process_threshold: number | null;
+    rationale: string;
+    stakes: string;
+    stakes_assumed: boolean;
+  };
+  adm_gate: {
+    applies: boolean;
+    answered: boolean;
+    label: string;
+    regulator: string;
+    adm_rule: string;
+    requirements: string[];
+    verify: string;
+    research_date: string;
+    freshness_warning: string;
+  };
+  risk_register: {
+    id: string;
+    category: string;
+    label: string;
+    mitigation: string;
+    impact_gbp: number;
+    pre_probability_pct: number;
+    post_probability_pct: number;
+    pre_ev_gbp: number;
+    post_ev_gbp: number;
+  }[];
+  total_risk_ev_gbp: { pre_mitigation: number; post_mitigation: number };
+  anti_pattern_checks: { id: string; status: string; note: string }[];
+  open_questions: { id: string; question: string }[];
+  principle: string;
+  answers?: Record<string, unknown>;
+}
+
 export interface ProcessFacts {
   process_type: string;
   source_file: string;
   compliance?: ComplianceReport;
   redesign?: RedesignReport;
+  ai_assessment?: AiAssessment;
   flow?: { n_edges: number; edges: FlowEdge[] };
   time_profile?: Partial<TimeProfile>;
   resources?: {

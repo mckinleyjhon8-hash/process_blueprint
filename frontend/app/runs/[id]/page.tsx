@@ -3,6 +3,7 @@
 import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
+  Bot,
   ClipboardCheck,
   Expand,
   FileText,
@@ -36,6 +37,7 @@ import { BriefPanel } from "@/components/dashboard/BriefPanel";
 import { DiscoveryPanel } from "@/components/dashboard/DiscoveryPanel";
 import { BenchmarkCard } from "@/components/dashboard/BenchmarkCard";
 import { RedesignPanel } from "@/components/dashboard/RedesignPanel";
+import { AiRiskPanel } from "@/components/dashboard/AiRiskPanel";
 import { ProcessCanvas } from "@/components/map/ProcessCanvas";
 import { DependencyGraph } from "@/components/map/DependencyGraph";
 
@@ -149,6 +151,25 @@ export default function RunPage({ params }: { params: Promise<{ id: string }> })
               <Badge tone="primary">{facts.redesign.n_recommendations}</Badge>
             ) : undefined,
           },
+          {
+            id: "ai-risk",
+            label: "AI & Risk",
+            icon: <Bot size={14} />,
+            badge: facts.ai_assessment ? (
+              <Badge
+                tone={
+                  facts.ai_assessment.decision.route === "Augment_AI" ||
+                  facts.ai_assessment.decision.route === "Automate_Rules"
+                    ? "success"
+                    : "warning"
+                }
+              >
+                {facts.ai_assessment.decision.route === "Pending"
+                  ? `${facts.ai_assessment.open_questions.length}?`
+                  : facts.ai_assessment.decision.route.split("_")[0]}
+              </Badge>
+            ) : undefined,
+          },
           { id: "map", label: "Process map", icon: <Map size={14} /> },
           {
             id: "compliance",
@@ -207,6 +228,20 @@ export default function RunPage({ params }: { params: Promise<{ id: string }> })
       )}
 
       {tab === "redesign" && <RedesignPanel facts={facts} />}
+
+      {tab === "ai-risk" && (
+        facts.ai_assessment ? (
+          <AiRiskPanel runId={isSeed ? undefined : id} initial={facts.ai_assessment} />
+        ) : (
+          <Card padded={false}>
+            <EmptyState
+              icon={<Bot size={22} />}
+              title="No AI assessment for this run"
+              description="Runs analysed before Phase E3 don't carry the decision-tree assessment — re-run the analysis to generate it."
+            />
+          </Card>
+        )
+      )}
 
       {tab === "map" && (
         <Card padded={false} className="overflow-hidden">

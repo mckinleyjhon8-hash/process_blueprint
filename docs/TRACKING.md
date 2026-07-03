@@ -143,7 +143,21 @@ _Last updated: 2026-06-29 (Phase 4 frontend foundation built & running)_
       blockers; aggregate opportunity capped at the benchmark gap (§6.3) with
       realisation phasing. Run-workspace **Redesign tab** (phase-grouped cards).
       Live: freight → 8 recs, automation gated by 7 E/S/S + 2 blockers. 78 tests.
-- [ ] E3 AI-Risk · E4 ROI · E5 Consultant-OS gates · E6 knowledge depth · E7 compliance breadth
+- [x] **E3 AI Decision & Risk** (`ai_risk.py`): §0.2 decision tree (rules > ML > LLM >
+      human) walked per automation candidate — unknowns stay conservative (Pending/
+      Keep_Manual, stakes assumed HIGH); 5-dim data-readiness with per-pattern hard
+      minimums + Digitise/Standardise_First deferral (auto-seeded from the log:
+      structure 5, volume from n_cases, labels never assumed); stakes-based HITL
+      (in/on/over-the-loop + confidence thresholds, ADM-regulated forces in-the-loop);
+      R1–R5 AI risks + P1–P4 project risks as pre/post-mitigation EVs (post-mitigation
+      AI EV = £4,400 playbook example, test-pinned); jurisdiction ADM gate seeded from
+      the regulatory landscape (UK/EU/US/KSA/UAE/CA) with research-date stamps +
+      verify-against-regulator warnings; AP-AI1–4 anti-pattern guards wired to the
+      ECRS gate state. GET/POST /api/ai-assessment/{run_id}; run-workspace **AI & Risk
+      tab** (live decision inputs, readiness meters, HITL card, risk register).
+      Live: Pending/human-in-the-loop → answers → Augment_AI(Extraction)/on-the-loop
+      @0.90; EV £28.4k→£9.0k; KSA gate cites SDAIA. 90 tests.
+- [ ] E4 ROI (research-calibrated) · E5 Consultant-OS gates + Meridian IA · E6 knowledge depth · E7 compliance breadth
 
 ## Phase 5 — Hardening
 - [ ] Internal auth + engagement workspaces

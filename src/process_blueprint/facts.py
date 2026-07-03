@@ -100,6 +100,7 @@ class ProcessFacts:
     provenance: Dict[str, str] = field(default_factory=dict)    # metric -> evidence grade
     discovery: Dict[str, Any] = field(default_factory=dict)     # completeness scoring
     redesign: Dict[str, Any] = field(default_factory=dict)      # H1–H12 recommendations
+    ai_assessment: Dict[str, Any] = field(default_factory=dict)  # E3 decision tree + risks
 
     # --- provenance ---
     schema_version: str = SCHEMA_VERSION
@@ -168,6 +169,7 @@ class ProcessFacts:
             provenance=d.get("provenance", {}),
             discovery=d.get("discovery", {}),
             redesign=d.get("redesign", {}),
+            ai_assessment=d.get("ai_assessment", {}),
             schema_version=d.get("schema_version", SCHEMA_VERSION),
             generated_at=d.get("generated_at", ""),
             notifications=d.get("notifications", []),

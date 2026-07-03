@@ -58,6 +58,7 @@ _BRIEFS: Dict[tuple, Any] = {}        # (run_id, audience) -> BriefResult
 _COMPLIANCE: Dict[str, Any] = {}      # run_id -> SOP compliance report
 _DFS: Dict[str, Any] = {}             # run_id -> event-log DataFrame (for process-map render)
 _DISCOVERY: Dict[str, Dict[str, bool]] = {}  # run_id -> operator checklist answers
+_AI_ANSWERS: Dict[str, Dict[str, Any]] = {}  # run_id -> AI decision-tree answers
 
 _PROVIDER_KEY = {
     "anthropic": "ANTHROPIC_API_KEY",
@@ -320,6 +321,45 @@ def discovery_post(run_id: str, req: DiscoveryAnswers) -> Dict[str, Any]:
     # keep the in-session facts in sync so reports/briefs see the latest score
     if run_id in _RUNS:
         _RUNS[run_id].discovery = {k: v for k, v in report.items() if k != "answers"}
+    return report
+
+
+class AiAnswers(BaseModel):
+    answers: Dict[str, Any]
+
+
+@app.get("/api/ai-assessment/{run_id}")
+def ai_assessment_get(run_id: str) -> Dict[str, Any]:
+    """Current AI decision-tree assessment (conservative until answered)."""
+    facts = _facts_for_run(run_id)
+    if facts is None:
+        raise HTTPException(status_code=404, detail="Unknown run_id.")
+    from process_blueprint.ai_risk import assess
+
+    report = assess(facts, _AI_ANSWERS.get(run_id))
+    report["answers"] = _AI_ANSWERS.get(run_id, {})
+    return report
+
+
+@app.post("/api/ai-assessment/{run_id}")
+def ai_assessment_post(run_id: str, req: AiAnswers) -> Dict[str, Any]:
+    """Merge operator answers (incl. readiness overrides) and re-walk the tree."""
+    facts = _facts_for_run(run_id)
+    if facts is None:
+        raise HTTPException(status_code=404, detail="Unknown run_id.")
+    current = _AI_ANSWERS.get(run_id, {})
+    readiness = {**current.get("readiness", {}), **(req.answers.get("readiness") or {})}
+    merged = {**current, **req.answers}
+    if readiness:
+        merged["readiness"] = readiness
+    # None values clear an answer (lets the operator undo a choice)
+    _AI_ANSWERS[run_id] = {k: v for k, v in merged.items() if v is not None}
+    from process_blueprint.ai_risk import assess
+
+    report = assess(facts, _AI_ANSWERS[run_id])
+    report["answers"] = _AI_ANSWERS[run_id]
+    if run_id in _RUNS:
+        _RUNS[run_id].ai_assessment = {k: v for k, v in report.items() if k != "answers"}
     return report
 
 
