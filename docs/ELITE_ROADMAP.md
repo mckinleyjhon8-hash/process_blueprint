@@ -5,8 +5,34 @@
 > end to end: Discover → Analyze → (Re)Design → Recommend → Deliver — with the playbook
 > methodology enforced by the tool, not remembered by the consultant.
 >
-> Sources: the five playbooks + knowledge base + Consultant OS (`drive-download-20260702…`),
+> Sources: the playbooks + knowledge base + Consultant OS, now consolidated in
+> `C:\Users\musta\Desktop\pure_research` (2026-07-02 additions: **apqc_scor_framework_reference**
+> — verified PCF v8.0 + SCOR v14.0; **roi_investment_research_reference** — empirically
+> calibrated ROI defaults; **compliance_privacy_regulatory_landscape** — current-status ADM
+> law per jurisdiction; **concepts/** — the 10-screen "Meridian" product design),
 > pm4py 2.7.23 full API, our existing engine/portal.
+
+## 0. Research-driven corrections (2026-07-03 review)
+
+1. **ROI calibration (feeds E4):** use the research reference's conservative defaults, not
+   the playbook's — realisation RPA 40/70/90% (Y1/Y2/Y3), AI 25/55/80%; TCO contingency
+   15% RPA / 25–30% AI; STP ceilings AP 75% · onboarding 60% · RPA 80% · LLM 75% (never
+   100%); UK loaded-FTE ×1.30 (2025/26 NI); failure haircut ~30% under-delivery; manual AP
+   error baseline 1.5% → post-automation 0.3–0.5% (never zero).
+2. **Framework tagging (quick win):** tag each process with verified PCF v8.0 + SCOR v14.0
+   codes (AP→9.5, AR→9.2.3, Payroll→7.5.4 under HR now, PO→4.2.4/S1, Fulfilment→4.4.3/F1…);
+   fix our benchmark labels citing "SCOR DS 2.0" → SCOR v14.0, APQC v7 → v8.0.
+3. **Compliance freshness discipline (E3/E7):** ADM provisions are jurisdiction-specific and
+   fast-moving (EU AI Act high-risk obligations ~Aug 2026; UK DUAA 2025 recasts Art 22).
+   Compliance gates must carry `[verify against regulator]` notes + research-date stamps;
+   re-verify quarterly. Landscape reference = the gate seed data.
+4. **Meridian concept adoption (shapes E5+):** engagement-centric IA (Company Profile →
+   Engagement → in-scope Processes with stage badges) over run-centric; Evidence Hub +
+   Interview Notes = the elicitation-capture layer feeding discovery completeness; Process
+   Workspace = AS-IS/TO-BE VSM strip + per-step dispositions. Keep OUR design system
+   (Monday-class light) — adopt Meridian's structures, not its skin.
+   ⚠️ Concepts grade evidence E1–E5 **inverted** vs the playbooks (E5=benchmarked best);
+   our implementation keeps playbook semantics (E1 = measured = best). Do not copy the UI scale.
 
 ---
 
