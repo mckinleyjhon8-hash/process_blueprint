@@ -207,12 +207,52 @@ export interface AiAssessment {
   answers?: Record<string, unknown>;
 }
 
+export interface RoiScenario {
+  realisation_curve: number[];
+  annual_benefit_gbp: number;
+  cash_flows: number[];
+  npv_gbp: number;
+  risk_adjusted_npv_gbp: number;
+  payback_months: number | null;
+  roi_3yr_pct: number;
+}
+
+export interface RoiReport {
+  computed: boolean;
+  inputs: Record<string, unknown>;
+  input_fields: { id: string; label: string; kind: string; required: boolean }[];
+  missing_inputs: string[];
+  gate: "pass" | "caveated" | "blocked";
+  gate_note: string;
+  provenance_note: string;
+  category?: string;
+  stp_ceiling_pct?: number;
+  discount_rate_pct?: number;
+  benefits?: {
+    id: string;
+    label: string;
+    annual_gbp: number;
+    convertibility: string;
+    conversion_path: string;
+    note: string | null;
+  }[];
+  cashable_annual_gbp?: number;
+  capacity_annual_gbp?: number;
+  double_count_warnings?: string[];
+  tco?: Record<string, number> & { contingency_pct: number };
+  risk_ev_gbp?: number;
+  scenarios?: Record<"conservative" | "base" | "optimistic", RoiScenario>;
+  cost_of_delay_gbp_per_month?: number;
+  calibration_note?: string;
+}
+
 export interface ProcessFacts {
   process_type: string;
   source_file: string;
   compliance?: ComplianceReport;
   redesign?: RedesignReport;
   ai_assessment?: AiAssessment;
+  roi?: RoiReport;
   flow?: { n_edges: number; edges: FlowEdge[] };
   time_profile?: Partial<TimeProfile>;
   resources?: {

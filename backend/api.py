@@ -59,6 +59,7 @@ _COMPLIANCE: Dict[str, Any] = {}      # run_id -> SOP compliance report
 _DFS: Dict[str, Any] = {}             # run_id -> event-log DataFrame (for process-map render)
 _DISCOVERY: Dict[str, Dict[str, bool]] = {}  # run_id -> operator checklist answers
 _AI_ANSWERS: Dict[str, Dict[str, Any]] = {}  # run_id -> AI decision-tree answers
+_ROI_INPUTS: Dict[str, Dict[str, Any]] = {}  # run_id -> operator financial inputs
 
 _PROVIDER_KEY = {
     "anthropic": "ANTHROPIC_API_KEY",
@@ -360,6 +361,37 @@ def ai_assessment_post(run_id: str, req: AiAnswers) -> Dict[str, Any]:
     report["answers"] = _AI_ANSWERS[run_id]
     if run_id in _RUNS:
         _RUNS[run_id].ai_assessment = {k: v for k, v in report.items() if k != "answers"}
+    return report
+
+
+class RoiInputs(BaseModel):
+    inputs: Dict[str, Any]
+
+
+@app.get("/api/roi/{run_id}")
+def roi_get(run_id: str) -> Dict[str, Any]:
+    """Current investment appraisal (uncomputed shell until inputs stated)."""
+    facts = _facts_for_run(run_id)
+    if facts is None:
+        raise HTTPException(status_code=404, detail="Unknown run_id.")
+    from process_blueprint.roi import compute as roi_compute
+
+    return roi_compute(facts, _ROI_INPUTS.get(run_id, {}))
+
+
+@app.post("/api/roi/{run_id}")
+def roi_post(run_id: str, req: RoiInputs) -> Dict[str, Any]:
+    """Merge operator financial inputs and recompute the 3-year appraisal."""
+    facts = _facts_for_run(run_id)
+    if facts is None:
+        raise HTTPException(status_code=404, detail="Unknown run_id.")
+    merged = {**_ROI_INPUTS.get(run_id, {}), **req.inputs}
+    _ROI_INPUTS[run_id] = {k: v for k, v in merged.items() if v is not None}
+    from process_blueprint.roi import compute as roi_compute
+
+    report = roi_compute(facts, _ROI_INPUTS[run_id])
+    if run_id in _RUNS:
+        _RUNS[run_id].roi = report
     return report
 
 

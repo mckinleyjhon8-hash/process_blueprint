@@ -3,6 +3,7 @@
 import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
+  Banknote,
   Bot,
   ClipboardCheck,
   Expand,
@@ -38,6 +39,7 @@ import { DiscoveryPanel } from "@/components/dashboard/DiscoveryPanel";
 import { BenchmarkCard } from "@/components/dashboard/BenchmarkCard";
 import { RedesignPanel } from "@/components/dashboard/RedesignPanel";
 import { AiRiskPanel } from "@/components/dashboard/AiRiskPanel";
+import { RoiPanel } from "@/components/dashboard/RoiPanel";
 import { ProcessCanvas } from "@/components/map/ProcessCanvas";
 import { DependencyGraph } from "@/components/map/DependencyGraph";
 
@@ -170,6 +172,20 @@ export default function RunPage({ params }: { params: Promise<{ id: string }> })
               </Badge>
             ) : undefined,
           },
+          {
+            id: "roi",
+            label: "ROI",
+            icon: <Banknote size={14} />,
+            badge: facts.roi ? (
+              facts.roi.computed ? (
+                <Badge tone="success">computed</Badge>
+              ) : (
+                <Badge tone={facts.roi.gate === "blocked" ? "danger" : "warning"}>
+                  {facts.roi.gate}
+                </Badge>
+              )
+            ) : undefined,
+          },
           { id: "map", label: "Process map", icon: <Map size={14} /> },
           {
             id: "compliance",
@@ -238,6 +254,20 @@ export default function RunPage({ params }: { params: Promise<{ id: string }> })
               icon={<Bot size={22} />}
               title="No AI assessment for this run"
               description="Runs analysed before Phase E3 don't carry the decision-tree assessment — re-run the analysis to generate it."
+            />
+          </Card>
+        )
+      )}
+
+      {tab === "roi" && (
+        facts.roi ? (
+          <RoiPanel runId={isSeed ? undefined : id} initial={facts.roi} />
+        ) : (
+          <Card padded={false}>
+            <EmptyState
+              icon={<Banknote size={22} />}
+              title="No ROI appraisal for this run"
+              description="Runs analysed before Phase E4 don't carry the appraisal — re-run the analysis to generate it."
             />
           </Card>
         )

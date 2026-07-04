@@ -17,6 +17,7 @@ from typing import Dict, List, Optional
 import pandas as pd
 
 from . import ai_risk
+from . import roi as roi_engine
 from . import benchmarks as bench
 from . import conformance, discovery, discovery_completeness, insights, performance
 from . import redesign as redesign_engine
@@ -112,4 +113,5 @@ def analyze_dataframe(
     facts.discovery = discovery_completeness.compute(facts)
     facts.redesign = redesign_engine.generate(facts)
     facts.ai_assessment = ai_risk.assess(facts)  # conservative defaults until answered
+    facts.roi = roi_engine.compute(facts, {})    # uncomputed shell until inputs stated
     return facts

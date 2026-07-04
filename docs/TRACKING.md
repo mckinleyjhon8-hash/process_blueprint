@@ -157,7 +157,19 @@ _Last updated: 2026-06-29 (Phase 4 frontend foundation built & running)_
       tab** (live decision inputs, readiness meters, HITL card, risk register).
       Live: Pending/human-in-the-loop → answers → Augment_AI(Extraction)/on-the-loop
       @0.90; EV £28.4k→£9.0k; KSA gate cites SDAIA. 90 tests.
-- [ ] E4 ROI (research-calibrated) · E5 Consultant-OS gates + Meridian IA · E6 knowledge depth · E7 compliance breadth
+- [x] **E4 ROI engine** (`roi.py`): deterministic 3-year appraisal with the research-
+      calibrated constants — realisation RPA 40/70/90 · AI 25/55/80 (cons), STP ceilings
+      (AP 75/onboarding 60/RPA 80/LLM 75 — never 100%), FTE ×1.30, contingency 15/27.5%,
+      post-automation error floor 0.4%; 7-component TCO; benefit register with the
+      convertibility test (no conversion path → CAPACITY, excluded from cash NPV) +
+      double-count warnings; conservative/base/optimistic scenarios (NPV @ SME hurdle,
+      hand-checked; payback months; 3-yr ROI%); risk-adjusted NPV subtracting E3
+      post-mitigation EVs; cost of delay; discovery ROI-gate passthrough (blocked gate
+      = may not be presented). Log seeds volume+error (E1); finance stays operator-
+      stated (E3/E4, wide-band note). GET/POST /api/roi/{run_id}; run-workspace **ROI
+      tab** (inputs form, scenario cards, benefit register, TCO). Live: £59.6k cashable,
+      TCO £60.7k, NPV £16.4k–£63.7k, payback 13–24mo, gate=blocked surfaced. 100 tests.
+- [ ] E5 Consultant-OS gates + Meridian IA · E6 knowledge depth · E7 compliance breadth
 
 ## Phase 5 — Hardening
 - [ ] Internal auth + engagement workspaces

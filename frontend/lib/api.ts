@@ -105,6 +105,19 @@ export const getRun = (runId: string) =>
 export const getDiscovery = (runId: string) =>
   getJSON<import("./types").DiscoveryReport>(`/api/discovery/${runId}`);
 
+export async function postRoi(
+  runId: string,
+  inputs: Record<string, unknown>,
+): Promise<import("./types").RoiReport> {
+  const r = await fetch(`${BASE}/api/roi/${runId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ inputs }),
+  });
+  if (!r.ok) throw new Error(await detail(r));
+  return r.json();
+}
+
 export async function postAiAssessment(
   runId: string,
   answers: Record<string, unknown>,
